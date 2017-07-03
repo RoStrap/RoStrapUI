@@ -23,7 +23,7 @@ for Group, Name in Page:gmatch("(<section class=\"color%-group\">.-<span class=\
             Accent = ("%s\n\t\t[%s] = rgb(%u, %u, %u);"):format(Accent, Color:sub(2), "0x" .. Hex1, "0x" .. Hex2, "0x" .. Hex3)
         end
     end
-    String = String .. List .. (Accent and Accent .. "\n\t};" or "") .. "\n}"
+    String = String .. List .. (Accent and "\n" .. Accent .. "\n\t};" or "") .. "\n}"
     Return = ("%s\n\t%s = %s;"):format(Return, Name, Name)
 end
 
