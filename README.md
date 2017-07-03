@@ -27,5 +27,5 @@ for Group, Name in Page:gmatch("(<section class=\"color%-group\">.-<span class=\
     Return = ("%s\n\t%s = %s;"):format(Return, Name, Name)
 end
 
-print(String .. Return .. "\n\tBlack = Black;\n\tWhite = White;\n}")
+print(String .. Return .. "\n\tBlack = Black;\n\tWhite = White;\n}\n")
 ```
