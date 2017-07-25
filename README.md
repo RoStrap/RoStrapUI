@@ -3,7 +3,7 @@ User Interface Modules for Roblox
 
 
 ## Colors
-Table format of [Material Design's official Color Specifications](https://material.io/guidelines/style/color.html#color-color-palette). This module is compiled via our [Colors Generator](https://github.com/RoStrap/UI/blob/master/Colors%20Generator.md)
+Colors taken from [Material Design Color Palette](https://material.io/guidelines/style/color.html#color-color-palette), compiled via our [Colors Generator](https://github.com/RoStrap/UI/blob/master/Colors%20Generator.md).
 
 The `Colors` table is structured much like the webpage:
 ```lua
