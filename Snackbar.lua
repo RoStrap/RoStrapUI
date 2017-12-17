@@ -1,5 +1,5 @@
--- Simple SnackbarFrame Generator
--- SnackbarFrame.new(ScreenGui Screen, string Text)
+-- Simple Snackbar Generator
+-- Snackbar.new(ScreenGui Screen, string Text)
 --	Generates a SnackbarFrame with message Text
 --	Expect more parameters in the future
 -- @spec https://material.io/guidelines/components/snackbars-toasts.html
