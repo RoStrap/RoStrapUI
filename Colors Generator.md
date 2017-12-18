@@ -7,9 +7,10 @@ for Group in game:GetService("HttpService"):GetAsync("https://material.io/guidel
 		Name = Name:gsub("%s", "")
 		local List, Accent = "\n\n\t" .. Name .. " = {"
 		local Count = 0
-		for Color, Hex1, Hex2, Hex3 in Group:gmatch("<span class=\"shade\">(%d+)</span>%s*<span class=\"hex\">#([ABCDEF%d][ABCDEF%d])([ABCDEF%d][ABCDEF%d])([ABCDEF%d][ABCDEF%d])</span>") do
+		for Color, Hex1, Hex2, Hex3 in Group:gmatch("<span class=\"shade\">(A?%d+)</span>%s*<span class=\"hex\">#([ABCDEF%d][ABCDEF%d])([ABCDEF%d][ABCDEF%d])([ABCDEF%d][ABCDEF%d])</span>") do
 			Count = Count + 1
 			if Count ~= 1 then
+				print(Color)
 				if type(tonumber(Color)) == "number" then
 					List = ("%s\n\t\t[%s] = rgb(%u, %u, %u);"):format(List, Color, "0x" .. Hex1, "0x" .. Hex2, "0x" .. Hex3)
 				else
