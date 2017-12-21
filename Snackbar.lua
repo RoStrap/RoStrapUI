@@ -15,10 +15,6 @@ local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 
 local Maid = Resources:LoadLibrary("Maid")
 local Tween = Resources:LoadLibrary("Tween")
-local Bezier = Resources:LoadLibrary("Bezier")
-
-local Acceleration = Bezier.new(0.4, 0, 1, 1)
-local Deceleration = Bezier.new(0, 0, 0.2, 1)
 
 local TweenCompleted = Enum.TweenStatus.Completed
 
@@ -65,7 +61,7 @@ function Snackbar.new(Screen, Text)
 		OpenTween:Stop()
 		PreviousSnackbar.ZIndex = 2
 		
-		Tween(PreviousSnackbar, "Position", ExitPosition, Acceleration, ENTER_TIME * 0.7, false, function(Completed)
+		Tween(PreviousSnackbar, "Position", ExitPosition, "Acceleration", ENTER_TIME * 0.7, false, function(Completed)
 			if Completed == TweenCompleted then
 				PreviousSnackbar:Destroy()
 				if OpenSnackbar == PreviousSnackbar then
@@ -90,9 +86,9 @@ function Snackbar.new(Screen, Text)
 
 	SnackbarFrame.Parent = Screen
 
-	OpenTween = Tween(SnackbarFrame, "Position", EnterPosition, Deceleration, ENTER_TIME, false, function(Completed)
+	OpenTween = Tween(SnackbarFrame, "Position", EnterPosition, "Deceleration", ENTER_TIME, false, function(Completed)
 		if Completed == TweenCompleted and wait(DISPLAY_TIME - ENTER_TIME) then
-			Tween(SnackbarFrame, "Position", ExitPosition, Acceleration, ENTER_TIME, false, function(Completed)
+			Tween(SnackbarFrame, "Position", ExitPosition, "Acceleration", ENTER_TIME, false, function(Completed)
 				if Completed == TweenCompleted then
 					SnackbarFrame:Destroy()
 					if OpenSnackbar == SnackbarFrame then
