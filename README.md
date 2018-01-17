@@ -57,7 +57,9 @@ wait(1)
 
 Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Submit.TextColor3 = Color3.fromRGB(0, 0, 0)
+
 wait(1)
+
 Submit:Destroy()
 ```
 There is also a `Ripple` method which just plays a Ripple.
@@ -75,4 +77,4 @@ FlatButton.Corner.ImageColor3 = Color3.fromRGB(255, 255, 255)
 ```
 
 #### Custom
-A `CustomButton` is exactly the same as a `FlatButton`, except its `Corner` object has its [ImageTransparency](http://wiki.roblox.com/index.php?title=API:Class/GuiObject/ImageTransparency) set to 0. Use this if you don't want the cropped edges.
+A `CustomButton` is exactly the same as a `FlatButton`, except its `Corner` object has its [ImageTransparency](http://wiki.roblox.com/index.php?title=API:Class/GuiObject/ImageTransparency) set to 0. Use this if you don't want visible corner overlays.
