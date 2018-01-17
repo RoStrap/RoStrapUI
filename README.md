@@ -22,6 +22,7 @@ Material Design Buttons!
 ### API
 Instantiate a new button with `userdata Button.new(string BUTTON_TYPE, RbxObject Parent)`. It returns a userdata that serves as a wrapper for the [TextButton](http://wiki.roblox.com/index.php?title=API:Class/TextButton) Object. Simply declare it and use it like you normally would!
 
+Example:
 ```lua
 local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
 local Button = Resources:LoadLibrary("Button")
@@ -36,7 +37,7 @@ Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Frame.BorderSizePixel = 0
 Frame.Size = UDim2.new(1, 0, 1, 0)
 
-local Submit = Button.new("Flat", Frame)
+local Submit = Button.new("Custom", Frame)
 Submit.TextSize = 18
 Submit.TextColor3 = Color3.fromRGB(255, 255, 255)
 Submit.Size = UDim2.new(0, 82, 0, 36)
@@ -47,13 +48,31 @@ Submit.Text = "SUBMIT"
 Submit.MouseButton1Click:Connect(function()
 	print("MouseButton1Click")
 end)
+
+wait(1)
+
+Submit:Ripple()
+
+wait(1)
+
+Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Submit.TextColor3 = Color3.fromRGB(0, 0, 0)
+wait(1)
+Submit:Destroy()
+```
+There is also a `Ripple` method which just plays a Ripple.
+```lua
+Submit:Ripple() -- Ripples :D
 ```
 
 ### Button Types
-Currently the only button type is "Flat". There should also be a "Raised" type but I am not smart enough to figure out how to replicate the button-press effect accurately.
+The two button types are "Flat" and "Custom". There should also be a "Raised" type but I am not smart enough to figure out how to replicate the button-press effect accurately.
 
 #### Flat
-A `FlatButton` has one descendant by default, called "Corner". This is the [ImageLabel](http://wiki.roblox.com/index.php?title=API:Class/ImageLabel) that overlays a 2dp corner image over your `FlatButton`. It's [ImageColor3](http://wiki.roblox.com/index.php?title=API:Class/GuiObject/ImageColor3) property is automatically set to `FlatButton.Parent.BackgroundColor3`. Whenever you set the `Parent` property, it will attempt to update to the aforementioned value. You can set it manually with the following:
+A `FlatButton` has one descendant by default, called `Corner`. This is the [ImageLabel](http://wiki.roblox.com/index.php?title=API:Class/ImageLabel) that overlays a 2dp corner image over your `FlatButton`. It's [ImageColor3](http://wiki.roblox.com/index.php?title=API:Class/GuiObject/ImageColor3) property is automatically set to `FlatButton.Parent.BackgroundColor3`. Whenever you set the `Parent` property, it will attempt to update to the aforementioned value. You can set it manually with the following:
 ```lua
 FlatButton.Corner.ImageColor3 = Color3.fromRGB(255, 255, 255)
 ```
+
+#### Custom
+A `CustomButton` is exactly the same as a `FlatButton`, except its `Corner` object has its [ImageTransparency](http://wiki.roblox.com/index.php?title=API:Class/GuiObject/ImageTransparency) set to 0. Use this if you don't want the cropped edges.
