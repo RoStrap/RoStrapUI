@@ -1,3 +1,6 @@
+-- Material Design Button element
+-- @author Validark
+
 -- Import Tween Library
 local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
 local Tween = Resources:LoadLibrary("Tween")
