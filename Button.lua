@@ -65,13 +65,16 @@ local function __newindex(self, i, v)
 end
 
 local function __namecall(self, ...)
-	-- Not sure that this is the best way to do this
 	local Button = self.Button
 	local Arguments = {...}
-	local Method = table.remove(Arguments) -- select(-1, ...)
+	local Method = table.remove(Arguments)
+
 	if Method == "Destroy" then
-		-- Do cleanup operations here
 		self.Connection[1] = self.Connection[1]:Disconnect()
+		local Metatable = getmetatable(self)
+		for i in next, Metatable do
+			Metatable[i] = nil
+		end
 	elseif Method == "Ripple" then
 		self.Down{
 			UserInputType = Enum.UserInputType.MouseButton1;
@@ -94,32 +97,24 @@ local Button = {}
 
 function Button.new(Type, Parent, Theme)
 	-- Globals
-	local Button, Corner, CurrentCircle, Down, Up, CornerBackgroundTransparency
-	local Connection = {{Disconnect = function() end}}
+	local Button, Corner, CurrentCircle, CornerBackgroundTransparency
 
 	-- Pseudo Object
 	local Interactable = newproxy(true)
 	local Metatable = getmetatable(Interactable)
 	Metatable.__newindex = __newindex
 	Metatable.__namecall = __namecall
+	Metatable.Connection = {{Disconnect = function() end}}
 
 	function Metatable:__index(i)
-		if i == "Button" then
-			return Button
-		elseif i == "Down" then
-			return Down
-		elseif i == "Up" then
-			return Up
-		elseif i == "Connection" then
-			return Connection
-		else
-			return Button[i]
-		end
-	end	
+		return Metatable[i] or Button[i]
+	end
 
 	if Type == "Flat" or Type == "Custom" then
 		Button = FlatButton:Clone()
 		Corner = Button.Corner
+
+		Metatable.Button = Button
 
 		Corner.BackgroundColor3 = Button.TextColor3
 		Interactable.Parent = Parent
@@ -140,7 +135,7 @@ function Button.new(Type, Parent, Theme)
 		error("[Button] Invalid Button Type; expected \"Flat\" or \"Custom\"")
 	end
 
-	function Down(InputObject)
+	function Metatable.Down(InputObject)
 		if InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", CornerBackgroundTransparency, "Standard", 0.35, true)
 		elseif ValidInputEnums[InputObject.UserInputType] then
@@ -167,7 +162,7 @@ function Button.new(Type, Parent, Theme)
 		end
 	end
 
-	function Up(InputObject)
+	function Metatable.Up(InputObject)
 		if InputObject and InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", 1, "Standard", 0.35, true)
 		end
@@ -177,8 +172,8 @@ function Button.new(Type, Parent, Theme)
 		end
 	end
 
-	Button.InputBegan:Connect(Down)
-	Button.InputEnded:Connect(Up)
+	Button.InputBegan:Connect(Metatable.Down)
+	Button.InputEnded:Connect(Metatable.Up)
 
 	return Interactable
 end
