@@ -6,7 +6,6 @@ local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Res
 local Tween = Resources:LoadLibrary("Tween")
 
 -- Enums
-local Completed = Enum.TweenStatus.Completed
 local MouseMovement = Enum.UserInputType.MouseMovement
 
 local ValidInputEnums = {
@@ -32,22 +31,23 @@ Corner.SliceCenter = Rect.new(7, 7, 14, 14)
 Corner.Size = UDim2.new(1, 0, 1, 0)
 Corner.Parent = FlatButton
 
-local Circle = Instance.new("ImageLabel")
-Circle.AnchorPoint = Vector2.new(0.5, 0.5)
-Circle.BackgroundTransparency = 1
-Circle.Size = UDim2.new(0, 4, 0, 4)
-Circle.Image = "rbxassetid://517259585"
-Circle.ImageTransparency = 0.8
-Circle.Name = "Ripple"
-Circle.ZIndex = 7
+local Ripple = Instance.new("ImageLabel")
+Ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+Ripple.BackgroundTransparency = 1
+Ripple.Size = UDim2.new(0, 4, 0, 4)
+Ripple.Image = "rbxassetid://517259585"
+Ripple.ImageTransparency = 0.8
+Ripple.Name = "Ripple"
+Ripple.ZIndex = 7
 
 -- Preload Ink Ripple
-game:GetService("ContentProvider"):Preload(Circle.Image)
+game:GetService("ContentProvider"):Preload(Ripple.Image)
 
 -- Metamethods
 local function __newindex(self, i, v)
 	local Button = self.Button
 	local Corner = Button.Corner
+	
 	if v then
 		if i == "Parent" and v:IsA("GuiObject") then
 			Corner.ImageColor3 = v.BackgroundColor3
@@ -84,9 +84,7 @@ local function __namecall(self, ...)
 			}
 		}
 
-		wait(0.15)
-
-		return self.Up()
+		return delay(0.15, self.Up)
 	end
 
 	return Button(Method, unpack(Arguments)) -- Button[Method](Button, unpack(Arguments))
@@ -97,7 +95,7 @@ local Button = {}
 
 function Button.new(Type, Parent, Theme)
 	-- Globals
-	local Button, Corner, CurrentCircle, CornerBackgroundTransparency
+	local Button, Corner, LastRipple, CornerBackgroundTransparency
 
 	-- Pseudo Object
 	local Interactable = newproxy(true)
@@ -139,7 +137,6 @@ function Button.new(Type, Parent, Theme)
 		if InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", CornerBackgroundTransparency, "Standard", 0.35, true)
 		elseif ValidInputEnums[InputObject.UserInputType] then
-			local PreviousCircle = CurrentCircle
 			if PreviousCircle then
 				Tween(PreviousCircle, "ImageTransparency", 1, "Deceleration", 1, false, true)
 			end
@@ -150,15 +147,15 @@ function Button.new(Type, Parent, Theme)
 			local a, b, c, d = (X*X + Y*Y) ^ 0.5, (X*X + W*W) ^ 0.5, (V*V + Y*Y) ^ 0.5, (V*V + W*W) ^ 0.5 -- Calculate distance between mouse and corners
 			local Diameter = 2*(a > b and a > c and a > d and a or b > c and b > d and b or c > d and c or d) + 2.5 -- Find longest distance between mouse and a corner
 
-			local Circle = Circle:Clone()
-			CurrentCircle = Circle
+			local Ripple = Ripple:Clone()
+			LastRipple = Ripple
 
-			Circle.ImageColor3 = Button.TextColor3
-			Circle.Position = UDim2.new(0, X, 0, Y)
-			Circle.ZIndex = Corner.ZIndex - 1
-			Circle.Parent = Button
+			Ripple.ImageColor3 = Button.TextColor3
+			Ripple.Position = UDim2.new(0, X, 0, Y)
+			Ripple.ZIndex = Corner.ZIndex - 1
+			Ripple.Parent = Button
 
-			Tween(Circle, "Size", UDim2.new(0, Diameter, 0, Diameter), "Deceleration", 0.5)
+			Tween(Ripple, "Size", UDim2.new(0, Diameter, 0, Diameter), "Deceleration", 0.5)
 		end
 	end
 
@@ -166,9 +163,9 @@ function Button.new(Type, Parent, Theme)
 		if InputObject and InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", 1, "Standard", 0.35, true)
 		end
-		local CurrentCircle = CurrentCircle
-		if CurrentCircle then
-			Tween(CurrentCircle, "ImageTransparency", 1, "Deceleration", 1, false, true)
+		if LastRipple then
+			Tween(LastRipple, "ImageTransparency", 1, "Deceleration", 1, false, true)
+			LastRipple = nil
 		end
 	end
 
