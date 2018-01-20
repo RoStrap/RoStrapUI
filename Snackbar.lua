@@ -46,7 +46,10 @@ SnackbarText.ZIndex = 5
 
 local Snackbar = {}
 
-function Snackbar.new(Screen, Text)
+function Snackbar.new(Text, Screen)
+	-- @param string Text the message you want to appear
+	-- @param ScreenGui Screen the Parent of the Snackbar
+	
 	if OpenSnackbar then
 		local PreviousSnackbar = OpenSnackbar
 		local PreviousLabel = PreviousSnackbar:FindFirstChild("Label")
