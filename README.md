@@ -78,3 +78,33 @@ FlatButton.Corner.ImageColor3 = Color3.fromRGB(255, 255, 255)
 
 #### Custom
 A `CustomButton` is exactly the same as a `FlatButton`, except its `Corner` object has its [ImageTransparency](http://wiki.roblox.com/index.php?title=API:Class/GuiObject/ImageTransparency) set to 0. Use this if you don't want visible corner overlays.
+
+## Switches
+Example:
+```lua
+local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
+local Switch = Resources:LoadLibrary("Switch")
+
+local Players = game:GetService("Players")
+local LocalPlayer repeat LocalPlayer = Players.LocalPlayer until LocalPlayer or not wait()
+local PlayerGui repeat PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") until PlayerGui or not wait()
+
+local Screen = Instance.new("ScreenGui", PlayerGui)
+
+local Frame = Instance.new("Frame", Screen)
+Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame.BorderSizePixel = 0
+Frame.Size = UDim2.new(1, 0, 1, 0)
+
+local ReceiveUpdates = Switch.new("Checkbox")
+ReceiveUpdates.State = false
+ReceiveUpdates.Size = UDim2.new(0, 24, 0, 24)
+ReceiveUpdates.Position = UDim2.new(0, 100, 0, 100)
+ReceiveUpdates.Parent = Screen
+
+ReceiveUpdates.StateChanged:Connect(function(...)
+	print(...)
+end)
+```
+### API
+Boolean `State` is whether it is checked or not. If set while the Checkbox has a Parent, it will animate.
