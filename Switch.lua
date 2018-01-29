@@ -4,9 +4,10 @@
 
 -- Services
 local ContentProvider = game:GetService("ContentProvider")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Load Libraries
-local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
+local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 local Tween = Resources:LoadLibrary("Tween")
 local Colors = Resources:LoadLibrary("Colors")
 
@@ -17,7 +18,8 @@ local floor = math.floor
 -- Constants
 local DEFAULT_CHECKBOX_COLOR = "Cyan"
 
-local ANIMATION_TIME = 0.175
+local CENTER_FILL_TIME = 0.175
+local CHECK_TIME = 0.175
 local RIPPLE_TRANSPARENCY = 0.8
 local RIPPLE_ENTER = 0.5
 local RIPPLE_EXIT = 0.75
@@ -136,7 +138,7 @@ local function FillCenter(x, Grid)
 	end
 
 	if x == 1 then
-		Grid.OpenTween = Tween.new(ANIMATION_TIME, "Deceleration", DrawCheckmark, Grid)
+		Grid.OpenTween = Tween.new(CHECK_TIME, "Deceleration", DrawCheckmark, Grid)
 	end
 end
 
@@ -252,7 +254,7 @@ local function EraseCheckmark(x, Grid)
 		for a = 1, 196 do
 			Grid[a].BackgroundTransparency = BackgroundTransparency
 		end
-		Grid.OpenTween = Tween.new(ANIMATION_TIME, "Deceleration", EmptyCenter, Grid)
+		Grid.OpenTween = Tween.new(CENTER_FILL_TIME, "Deceleration", EmptyCenter, Grid)
 	end
 end
 
@@ -328,47 +330,47 @@ local function __namecall(self, ...)
 	return Button(Method, unpack(Arguments)) -- Button[Method](Button, unpack(Arguments))
 end
 
-local function __newindex(self, i, v)
-	local self = getmetatable(self).__index
+local function __newindex(Userdata, i, v)
+	local self = getmetatable(Userdata).__index
 	local Button = self.__index
 	local Checkbox = Button.Checkbox
 	
 	if i == "State" then
-		if self.State ~= v then
-			self.State = v
-			local Grid = self.Grid
+		-- if self.State ~= v then
+		self.State = v
+		local Grid = self.Grid
 
-			if Grid.OpenTween then
-				Grid.OpenTween:Stop()
-				Grid.OpenTween = nil
-			end
-
-			if v then
-				local ImageColor3 = self.EnabledColor3
-				local ImageTransparency = 0
-
-				Checkbox.ImageColor3 = ImageColor3
-				Checkbox.ImageTransparency = 0
-				Grid.ImageTransparency = 0
-
-				for a = 1, 196 do
-					Grid[a].BackgroundColor3 = ImageColor3
-				end
-
-				FillCenter(COMPLETE_ANIMATION, Grid)
-				DrawCheckmark(COMPLETE_ANIMATION, Grid)
-			else
-				local ImageColor3 = self.Theme.ImageColor3
-				local ImageTransparency = self.Theme.ImageTransparency
-
-				Checkbox.ImageColor3 = ImageColor3
-				Checkbox.ImageTransparency = ImageTransparency
-				Grid.ImageTransparency = ImageTransparency
-
-				EraseCheckmark(COMPLETE_ANIMATION, Grid)
-				EmptyCenter(COMPLETE_ANIMATION, Grid)
-			end
+		if Grid.OpenTween then
+			Grid.OpenTween:Stop()
+			Grid.OpenTween = nil
 		end
+
+		if v then
+			local ImageColor3 = self.EnabledColor3
+			local ImageTransparency = 0
+
+			Checkbox.ImageColor3 = ImageColor3
+			Checkbox.ImageTransparency = 0
+			Grid.ImageTransparency = 0
+
+			for a = 1, 196 do
+				Grid[a].BackgroundColor3 = ImageColor3
+			end
+
+			FillCenter(COMPLETE_ANIMATION, Grid)
+			DrawCheckmark(COMPLETE_ANIMATION, Grid)
+		else
+			local ImageColor3 = self.Theme.ImageColor3
+			local ImageTransparency = self.Theme.ImageTransparency
+
+			Checkbox.ImageColor3 = ImageColor3
+			Checkbox.ImageTransparency = ImageTransparency
+			Grid.ImageTransparency = ImageTransparency
+
+			EraseCheckmark(COMPLETE_ANIMATION, Grid)
+			EmptyCenter(COMPLETE_ANIMATION, Grid)
+		end
+		-- end
 		return
 	elseif i == "Size" then
 		return error("[Switch] The \"Size\" property is locked")
@@ -390,6 +392,7 @@ local function __newindex(self, i, v)
 		local Color3Value = Colors[v]
 		self.EnabledColor = v
 		self.EnabledColor3 = type(Color3Value) == "table" and Color3Value[500] or Color3Value
+		__newindex(Userdata, "State", self.State)
 		return
 	elseif i == "EnabledColor3" then
 		self.EnabledColor = "Unknown"
@@ -502,7 +505,7 @@ function Switch.new(Type, Parent)
 						Pixel.BackgroundTransparency = 1
 					end
 
-					Grid.OpenTween = Tween.new(ANIMATION_TIME, "Deceleration", FillCenter, Grid)
+					Grid.OpenTween = Tween.new(CENTER_FILL_TIME, "Deceleration", FillCenter, Grid)
 				else
 					local ImageColor3 = self.Theme.ImageColor3
 					local ImageTransparency = self.Theme.ImageTransparency
@@ -518,7 +521,7 @@ function Switch.new(Type, Parent)
 					end
 
 					Grid.XOffset, Grid.YOffset = 0, 0
-					Grid.OpenTween = Tween.new(ANIMATION_TIME, "Standard", EraseCheckmark, Grid)
+					Grid.OpenTween = Tween.new(CHECK_TIME, "Standard", EraseCheckmark, Grid)
 				end
 			end
 		end
