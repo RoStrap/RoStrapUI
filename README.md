@@ -82,7 +82,11 @@ A `CustomButton` is exactly the same as a `FlatButton`, except its `Corner` obje
 ## Switches
 Example:
 ```lua
+-- Put this in a localscript somewhere inside the client
+local THEME_NAME = "Light"
+
 local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
+local Colors = Resources:LoadLibrary("Colors")
 local Switch = Resources:LoadLibrary("Switch")
 
 local Players = game:GetService("Players")
@@ -91,20 +95,40 @@ local PlayerGui repeat PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui"
 
 local Screen = Instance.new("ScreenGui", PlayerGui)
 
-local Frame = Instance.new("Frame", Screen)
-Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+local Frame = Instance.new("Frame", Screen) -- Color3.fromRGB(51, 51, 51)
+Frame.BackgroundColor3 = THEME_NAME == "Dark" and Color3.fromRGB(51, 51, 51) or THEME_NAME == "Light" and Colors.White or error("Invalid THEME_NAME")
 Frame.BorderSizePixel = 0
 Frame.Size = UDim2.new(1, 0, 1, 0)
 
-local ReceiveUpdates = Switch.new("Checkbox")
-ReceiveUpdates.State = false
-ReceiveUpdates.Size = UDim2.new(0, 24, 0, 24)
-ReceiveUpdates.Position = UDim2.new(0, 100, 0, 100)
-ReceiveUpdates.Parent = Screen
+local DisallowedColors = {
+	White = true;
+	Black = true;
+	Grey = true;
+	Brown = true;
+	BlueGrey = true;
+}
 
-ReceiveUpdates.StateChanged:Connect(function(...)
-	print(...)
+local function NextColor(CurrentColor)
+	repeat CurrentColor = next(Colors, CurrentColor)
+	until CurrentColor and not DisallowedColors[CurrentColor]
+	return CurrentColor
+end
+
+local CurrentColor = NextColor()
+
+local ReceiveUpdates = Switch.new("Checkbox")
+ReceiveUpdates.EnabledColor = CurrentColor
+ReceiveUpdates.State = true
+ReceiveUpdates.StateChanged:Connect(function(On)
+	if not On then
+		CurrentColor = NextColor(CurrentColor)
+		print(CurrentColor)
+		ReceiveUpdates.EnabledColor = CurrentColor
+	end
 end)
+ReceiveUpdates.Position = UDim2.new(0, -3 + 16, 0, -3 + 16)
+ReceiveUpdates.Theme = THEME_NAME
+ReceiveUpdates.Parent = Frame
 ```
 ### API
 Boolean `State` is whether it is checked or not. If set while the Checkbox has a Parent, it will animate.
