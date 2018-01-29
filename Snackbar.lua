@@ -1,5 +1,6 @@
 -- Simple Snackbar Generator
--- Snackbar.new(ScreenGui Screen, string Text)
+-- @readme https://github.com/RoStrap/UI/blob/master/README.md
+-- Snackbar.new(string Text, ScreenGui Screen)
 --	Generates a SnackbarFrame with message Text
 --	Expect more parameters in the future
 -- @spec https://material.io/guidelines/components/snackbars-toasts.html
