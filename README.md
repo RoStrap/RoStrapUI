@@ -131,4 +131,4 @@ ReceiveUpdates.Theme = THEME_NAME
 ReceiveUpdates.Parent = Frame
 ```
 ### API
-Boolean `State` is whether it is checked or not. If set while the Checkbox has a Parent, it will animate.
+Boolean `State` is whether it is checked or not. If set, it will not do the animation. To animate, use the `ChangeState()` method.
