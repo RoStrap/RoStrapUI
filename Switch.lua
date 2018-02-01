@@ -18,8 +18,8 @@ local floor = math.floor
 -- Constants
 local DEFAULT_CHECKBOX_COLOR = "Cyan"
 
-local CENTER_FILL_TIME = 0.175
-local CHECK_TIME = 0.175
+local CENTER_FILL_TIME = 0.15
+local CHECK_TIME = 0.15
 local RIPPLE_TRANSPARENCY = 0.8
 local RIPPLE_ENTER = 0.5
 local RIPPLE_EXIT = 0.75
