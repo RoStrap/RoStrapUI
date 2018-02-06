@@ -4,10 +4,9 @@
 
 -- Services
 local ContentProvider = game:GetService("ContentProvider")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Load Libraries
-local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
+local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
 local Tween = Resources:LoadLibrary("Tween")
 local Colors = Resources:LoadLibrary("Colors")
 
@@ -15,11 +14,8 @@ local Colors = Resources:LoadLibrary("Colors")
 local ceil = math.ceil
 local floor = math.floor
 
--- Constants
-local DEFAULT_CHECKBOX_COLOR = "Cyan"
-
-local CENTER_FILL_TIME = 0.15
-local CHECK_TIME = 0.15
+-- Configuration
+local ANIMATION_TIME = 0.15
 local RIPPLE_TRANSPARENCY = 0.8
 local RIPPLE_ENTER = 0.5
 local RIPPLE_EXIT = 0.75
@@ -38,19 +34,21 @@ local CheckboxThemes = {
 	};
 }
 
+-- Constants
 local SLICE_CHECKBOX = true -- Currently has no effect
 local COMPLETE_ANIMATION = 0.9999 -- Not quite 1, so it won't fire next Animation
 
--- Derived Constants
+local DEFAULT_CHECKBOX_COLOR = "Cyan"
 local DEFAULT_CHECKBOX_COLOR3 = Colors[DEFAULT_CHECKBOX_COLOR][500]
+
+local SET_NAMES = {"Bar", 0.69, 0, 0.09}
+local SET_LENGTHS = {8, 4, 4, 8}
 
 -- Images
 local RIPPLE_IMAGE = "rbxassetid://517259585"
-local CHECKBOX_IMAGE_24 = "rbxassetid://1352842153"
 
 -- Preload Images
 ContentProvider:Preload(RIPPLE_IMAGE)
-ContentProvider:Preload(CHECKBOX_IMAGE_24)
 
 -- Object Data
 local NO_SIZE = UDim2.new(0, 0, 0, 0)
@@ -63,6 +61,28 @@ local CHECKBOX_SHRINK_SIZE = UDim2.new(0, 22, 0, 22)
 
 local MIDDLE_ANCHOR = Vector2.new(0.5, 0.5)
 local MIDDLE_POSITION = UDim2.new(0.5, 0, 0.5, 0)
+
+local function SetCheckboxColorAndTransparency(Grid, Color, Transparency)
+	local Opacity = 1 - Transparency
+	for a = 1, 4 do -- Set Image Color3
+		local Key = SET_NAMES[a]
+		local Objects = Grid[Key]
+		local PixelTransparency = Opacity * (Key == "Bar" and 0 or Key) + Transparency
+		for a = 1, SET_LENGTHS[a] do
+			local Object = Objects[a]
+			Object.BackgroundColor3 = Color
+			Object.BackgroundTransparency = PixelTransparency
+		end
+	end
+
+	Grid.ImageTransparency = Transparency
+
+	for a = 1, 196 do
+		local Pixel = Grid[a]
+		Pixel.BackgroundColor3 = Color
+		Pixel.BackgroundTransparency = Opacity * Pixel.BackgroundTransparency + Transparency -- CompoundTransparency
+	end
+end
 
 local function DrawCheckmark(x, Grid)
 --	ChangeCheckboxSize(PART_SIZE:Lerp(FULL_SIZE, x))
@@ -138,7 +158,7 @@ local function FillCenter(x, Grid)
 	end
 
 	if x == 1 then
-		Grid.OpenTween = Tween.new(CHECK_TIME, "Deceleration", DrawCheckmark, Grid)
+		Grid.OpenTween = Tween.new(ANIMATION_TIME, "Deceleration", DrawCheckmark, Grid)
 	end
 end
 
@@ -250,11 +270,10 @@ local function EraseCheckmark(x, Grid)
 	end
 
 	if x == 1 then
-		local BackgroundTransparency = ImageTransparency
 		for a = 1, 196 do
-			Grid[a].BackgroundTransparency = BackgroundTransparency
+			Grid[a].BackgroundTransparency = ImageTransparency
 		end
-		Grid.OpenTween = Tween.new(CENTER_FILL_TIME, "Deceleration", EmptyCenter, Grid)
+		Grid.OpenTween = Tween.new(ANIMATION_TIME, "Deceleration", EmptyCenter, Grid)
 	end
 end
 
@@ -267,40 +286,105 @@ Ripple.ImageTransparency = RIPPLE_TRANSPARENCY
 Ripple.Name = "Ripple"
 Ripple.Position = MIDDLE_POSITION
 
-local CheckboxButton do
-	CheckboxButton = Instance.new("TextButton")
-	CheckboxButton.BackgroundTransparency = 1
-	CheckboxButton.Text = ""
-	CheckboxButton.Size = CHECKBOX_SIZE
-
-	local Checkbox = Instance.new("ImageLabel")
-	Checkbox.AnchorPoint = MIDDLE_ANCHOR
+local Checkbox do
+	Checkbox = Instance.new("TextButton")
 	Checkbox.BackgroundTransparency = 1
-	Checkbox.Image = CHECKBOX_IMAGE_24
-	Checkbox.ImageColor3 = Colors.Black
-	Checkbox.ImageTransparency = CheckboxThemes.Light.ImageTransparency
-	Checkbox.Name = "Checkbox"
-	Checkbox.Size =  FULL_SIZE
-	Checkbox.Position = MIDDLE_POSITION
-	Checkbox.Parent = CheckboxButton
+	Checkbox.Text = ""
+	Checkbox.Size = CHECKBOX_SIZE
 
-	if SLICE_CHECKBOX then
-		Checkbox.ScaleType = "Slice"
-		Checkbox.SliceCenter = Rect.new(5, 5, 19, 19)
-	end
+	local Pixel = Instance.new("Frame")
+	Pixel.BackgroundTransparency = 1
+	Pixel.BackgroundColor3 = Colors.Black
+	Pixel.BorderSizePixel = 0
+	Pixel.Size = UDim2.new(0, 1, 0, 1)
 
 	for a = 1, 14 do
 		local Existant = 14 * (a - 1)
 		for b = 1, 14 do
-			local Pixel = Instance.new("Frame")
-			Pixel.BackgroundTransparency = 1
-			Pixel.BorderSizePixel = 0
+			local Pixel = Pixel:Clone()
 			Pixel.Name = Existant + b
-			Pixel.Parent = CheckboxButton
 			Pixel.Position = UDim2.new(0, b + 4, 0, a + 4)
-			Pixel.Size = UDim2.new(0, 1, 0, 1)
+			Pixel.Parent = Checkbox
 		end
 	end
+
+	local BackgroundTransparency = CheckboxThemes.Light.ImageTransparency
+	local BackgroundOpacity = 1 - BackgroundTransparency
+	local _0_69_Background = BackgroundOpacity*0.69 + BackgroundTransparency
+	local _0_09_Background = BackgroundOpacity*0.09 + BackgroundTransparency
+
+	local Bar = Instance.new("Frame")
+	Bar.BackgroundColor3 = Colors.Black
+	Bar.BackgroundTransparency = BackgroundTransparency
+	Bar.BorderSizePixel = 0
+	Bar.Name = SET_NAMES[1]
+
+	for c = 0, 16, 16 do
+		for b = 3, 4 do
+			local Horizontal = Bar:Clone()
+			Horizontal.Position = UDim2.new(0, 5, 0, b + c)
+			Horizontal.Size = UDim2.new(0, 14, 0, 1)
+
+			local Vertical = Bar:Clone()
+			Vertical.Position = UDim2.new(0, b + c, 0, 5)
+			Vertical.Size = UDim2.new(0, 1, 0, 14)
+
+			Horizontal.Parent = Checkbox
+			Vertical.Parent = Checkbox
+		end
+	end
+
+	Pixel.Name = SET_NAMES[2]
+
+	-- Do corners
+	for a = 3, 20, 17 do
+		local F1 = Pixel:Clone()
+		F1.BackgroundTransparency = _0_69_Background
+		F1.Position = UDim2.new(0, a, 0, a)
+
+		local F2 = Pixel:Clone()
+		F2.BackgroundTransparency = _0_69_Background
+		F2.Position = UDim2.new(0, a, 0, 23 - a)
+
+		F1.Parent = Checkbox
+		F2.Parent = Checkbox
+	end
+
+	Pixel.Name = SET_NAMES[3]
+
+	for a = 4, 19, 15 do
+		local F1 = Pixel:Clone()
+		F1.BackgroundTransparency = BackgroundTransparency
+		F1.Position = UDim2.new(0, a, 0, a)
+
+		local F2 = Pixel:Clone()
+		F2.BackgroundTransparency = BackgroundTransparency
+		F2.Position = UDim2.new(0, a, 0, 23 - a)
+
+		F1.Parent = Checkbox
+		F2.Parent = Checkbox
+	end
+
+	Pixel.Name = SET_NAMES[4]
+
+	for a = 3, 20, 17 do
+		for b = 4, 19, 15 do
+			local F1 = Pixel:Clone()
+			F1.BackgroundTransparency = _0_09_Background
+			F1.Position = UDim2.new(0, a, 0, b)
+
+			local F2 = Pixel:Clone()
+			F2.BackgroundTransparency = _0_09_Background
+			F2.Position = UDim2.new(0, b, 0, a)
+
+			F1.Parent = Checkbox
+			F2.Parent = Checkbox
+		end
+	end
+	
+	-- Destroy Clonable Templates
+	Pixel:Destroy()
+	Bar:Destroy()
 end
 
 -- Enums
@@ -330,47 +414,30 @@ local function __namecall(self, ...)
 	return Button(Method, unpack(Arguments)) -- Button[Method](Button, unpack(Arguments))
 end
 
-local function __newindex(Userdata, i, v)
-	local self = getmetatable(Userdata).__index
+local function __newindex(self, i, v)
+	local self = getmetatable(self).__index
 	local Button = self.__index
-	local Checkbox = Button.Checkbox
 	
 	if i == "State" then
-		-- if self.State ~= v then
-		self.State = v
-		local Grid = self.Grid
+		if self.State ~= v then
+			self.State = v
+			local Grid = self.Grid
 
-		if Grid.OpenTween then
-			Grid.OpenTween:Stop()
-			Grid.OpenTween = nil
-		end
-
-		if v then
-			local ImageColor3 = self.EnabledColor3
-			local ImageTransparency = 0
-
-			Checkbox.ImageColor3 = ImageColor3
-			Checkbox.ImageTransparency = 0
-			Grid.ImageTransparency = 0
-
-			for a = 1, 196 do
-				Grid[a].BackgroundColor3 = ImageColor3
+			if Grid.OpenTween then
+				Grid.OpenTween:Stop()
+				Grid.OpenTween = nil
 			end
 
-			FillCenter(COMPLETE_ANIMATION, Grid)
-			DrawCheckmark(COMPLETE_ANIMATION, Grid)
-		else
-			local ImageColor3 = self.Theme.ImageColor3
-			local ImageTransparency = self.Theme.ImageTransparency
-
-			Checkbox.ImageColor3 = ImageColor3
-			Checkbox.ImageTransparency = ImageTransparency
-			Grid.ImageTransparency = ImageTransparency
-
-			EraseCheckmark(COMPLETE_ANIMATION, Grid)
-			EmptyCenter(COMPLETE_ANIMATION, Grid)
+			if v then
+				SetCheckboxColorAndTransparency(Grid, self.EnabledColor3, 0)
+				FillCenter(COMPLETE_ANIMATION, Grid)
+				DrawCheckmark(COMPLETE_ANIMATION, Grid)
+			else
+				SetCheckboxColorAndTransparency(Grid, self.Theme.ImageColor3, self.Theme.ImageTransparency)
+				EraseCheckmark(COMPLETE_ANIMATION, Grid)
+				EmptyCenter(COMPLETE_ANIMATION, Grid)
+			end
 		end
-		-- end
 		return
 	elseif i == "Size" then
 		return error("[Switch] The \"Size\" property is locked")
@@ -380,8 +447,7 @@ local function __newindex(Userdata, i, v)
 		if Theme then
 			self.Theme = Theme
 			if not self.State then
-				Checkbox.ImageColor3 = Theme.ImageColor3
-				Checkbox.ImageTransparency = Theme.ImageTransparency
+				SetCheckboxColorAndTransparency(self.Grid, Theme.ImageColor3, Theme.ImageTransparency)
 			end
 		else
 			error("[Switch] Invalid theme")
@@ -391,12 +457,14 @@ local function __newindex(Userdata, i, v)
 		v = v or DEFAULT_CHECKBOX_COLOR
 		local Color3Value = Colors[v]
 		self.EnabledColor = v
-		self.EnabledColor3 = type(Color3Value) == "table" and Color3Value[500] or Color3Value
-		__newindex(Userdata, "State", self.State)
+		v = type(Color3Value) == "table" and Color3Value[500] or typeof(Color3Value) == "Color3" and Color3Value or error("[Switch] Invalid Color", 2)
+		self.EnabledColor3 = v
+		SetCheckboxColorAndTransparency(self.Grid, v, self.State and 0 or self.Theme.ImageTransparency)
 		return
 	elseif i == "EnabledColor3" then
 		self.EnabledColor = "Unknown"
 		self.EnabledColor3 = v
+		SetCheckboxColorAndTransparency(self.Grid, v, self.State and 0 or self.Theme.ImageTransparency)
 		return
 	end
 
@@ -418,15 +486,31 @@ function Switch.new(Type, Parent)
 	local LastRipple
 
 	local Bindable = Instance.new("BindableEvent")
-	local Button = CheckboxButton:Clone()
-	local Checkbox = Button.Checkbox
+	local Button = Checkbox:Clone()
 	Button.Parent = Parent
 
-	local Grid = {
+	-- Cache Pixel Grid
+	local Grid = { -- 220 Frames make up this Grid
 		XOffset = 0;
 		YOffset = 0;
 	}
 
+	for a = 1, 4 do
+		local Key = tostring(SET_NAMES[a])
+		local Objects = {}
+		local Count = 0
+		local Object = Button:FindFirstChild(Key)
+
+		while Object do
+			Count = Count + 1
+			Object.Name = ""
+			Objects[Count] = Object
+			Object = Button:FindFirstChild(Key)
+		end
+		
+		Grid[SET_NAMES[a]] = Objects
+	end
+	
 	-- Track pixel grid
 	for a = 1, 14 do
 		local Existant = 14 * (a - 1)
@@ -495,33 +579,12 @@ function Switch.new(Type, Parent)
 				end
 
 				if Checked then
-					Checkbox.ImageColor3 = self.EnabledColor3
-					Checkbox.ImageTransparency = 0
-					Grid.ImageTransparency = 0
-
-					for a = 1, 196 do
-						local Pixel = Grid[a]
-						Pixel.BackgroundColor3 = self.EnabledColor3
-						Pixel.BackgroundTransparency = 1
-					end
-
-					Grid.OpenTween = Tween.new(CENTER_FILL_TIME, "Deceleration", FillCenter, Grid)
+					SetCheckboxColorAndTransparency(Grid, self.EnabledColor3, 0)
+					Grid.OpenTween = Tween.new(ANIMATION_TIME, "Deceleration", FillCenter, Grid)
 				else
-					local ImageColor3 = self.Theme.ImageColor3
-					local ImageTransparency = self.Theme.ImageTransparency
-
-					Checkbox.ImageColor3 = ImageColor3
-					Checkbox.ImageTransparency = ImageTransparency
-					Grid.ImageTransparency = ImageTransparency
-
-					for a = 1, 196 do
-						local Pixel = Grid[a]
-						Pixel.BackgroundColor3 = ImageColor3
-						Pixel.BackgroundTransparency = (1 - ImageTransparency) * Pixel.BackgroundTransparency + ImageTransparency -- CompoundTransparency
-					end
-
+					SetCheckboxColorAndTransparency(Grid, self.Theme.ImageColor3, self.Theme.ImageTransparency)
 					Grid.XOffset, Grid.YOffset = 0, 0
-					Grid.OpenTween = Tween.new(CHECK_TIME, "Standard", EraseCheckmark, Grid)
+					Grid.OpenTween = Tween.new(ANIMATION_TIME, "Standard", EraseCheckmark, Grid)
 				end
 			end
 		end
@@ -537,7 +600,6 @@ function Switch.new(Type, Parent)
 
 	Button:GetPropertyChangedSignal("ZIndex"):Connect(function()
 		local ZIndex = Button.ZIndex
-		Checkbox.ZIndex = ZIndex + 1
 		for a = 1, 196 do
 			Grid[a].ZIndex = ZIndex + 2
 		end
