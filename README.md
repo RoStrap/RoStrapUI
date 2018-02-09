@@ -37,11 +37,11 @@ Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Frame.BorderSizePixel = 0
 Frame.Size = UDim2.new(1, 0, 1, 0)
 
-local Submit = Button.new("Custom", Frame)
+local Submit = Button.new("Flat", Frame) -- Use "Custom" to remove the rounded corners
 Submit.TextSize = 18
 Submit.TextColor3 = Color3.fromRGB(255, 255, 255)
 Submit.Size = UDim2.new(0, 82, 0, 36)
-Submit.Position = UDim2.new(0, 10, 0, 10)
+Submit.Position = UDim2.new(0, 10, 0, 100)
 Submit.Font = Enum.Font.SourceSansBold
 Submit.Text = "SUBMIT"
 
