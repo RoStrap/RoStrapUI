@@ -138,8 +138,8 @@ function Button.new(Type, Parent, Theme)
 		if InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", CornerBackgroundTransparency, "Standard", 0.35, true)
 		elseif ValidInputEnums[InputObject.UserInputType] then
-			if PreviousCircle then
-				Tween(PreviousCircle, "ImageTransparency", 1, "Deceleration", 1, false, true)
+			if LastRipple then
+				Tween(LastRipple, "ImageTransparency", 1, "Deceleration", 1, false, true)
 			end
 			
 			-- Find furthest Corner distance
