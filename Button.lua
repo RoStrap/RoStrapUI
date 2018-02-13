@@ -5,6 +5,11 @@
 -- Import Tween Library
 local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
 local Tween = Resources:LoadLibrary("Tween")
+local Shadow = Resources:LoadLibrary("Shadow")
+
+-- Elevations
+local RAISED_BASE_ELEVATION = 3
+local RAISED_ELEVATION = 6
 
 -- Enums
 local MouseMovement = Enum.UserInputType.MouseMovement
@@ -16,21 +21,61 @@ local ValidInputEnums = {
 	[Enum.UserInputType.MouseButton3] = true;
 }
 
+local FULL_SIZE = UDim2.new(1, 0, 1, 0)
+
 -- Objects
-local FlatButton = Instance.new("TextButton")
-FlatButton.AutoButtonColor = false
-FlatButton.BackgroundTransparency = 1
-FlatButton.ClipsDescendants = true
-FlatButton.Name = "FlatButton"
+local RaisedButtonImage = Instance.new("ImageLabel")
+RaisedButtonImage.BackgroundTransparency = 1
+RaisedButtonImage.ScaleType = Enum.ScaleType.Slice
+RaisedButtonImage.Size = FULL_SIZE
+RaisedButtonImage.SliceCenter = Rect.new(7, 7, 14, 14)
+RaisedButtonImage.Image = "rbxassetid://1409279673"
+RaisedButtonImage.Name = "Raised"
+RaisedButtonImage.ZIndex = 4
+
+local TextButton = Instance.new("TextButton")
+TextButton.AutoButtonColor = false
+TextButton.BackgroundTransparency = 1
+TextButton.Name = "Button"
+TextButton.ZIndex = 6
 
 local Corner = Instance.new("ImageLabel")
 Corner.BackgroundTransparency = 1
+Corner.BorderSizePixel = 0
 Corner.Image = "rbxassetid://550542844"
 Corner.Name = "Corner"
 Corner.ScaleType = Enum.ScaleType.Slice
 Corner.SliceCenter = Rect.new(7, 7, 14, 14)
-Corner.Size = UDim2.new(1, 0, 1, 0)
-Corner.Parent = FlatButton
+Corner.Size = FULL_SIZE
+Corner.ZIndex = 9
+Corner.Parent = TextButton
+
+local Rippler = Instance.new("Frame")
+Rippler.BackgroundTransparency = 1
+Rippler.BorderSizePixel = 0
+Rippler.ClipsDescendants = true
+Rippler.Name = "Rippler"
+Rippler.Size = FULL_SIZE
+Rippler.ZIndex = 7
+Rippler.Parent = TextButton
+
+local RaisedRippler = Rippler:Clone()
+RaisedRippler.Position = UDim2.new(0, 2, 0, 0)
+RaisedRippler.Size = UDim2.new(1, -4, 1, 0)
+
+local RaisedRippler2 = Rippler:Clone()
+RaisedRippler2.Position = UDim2.new(0, 0, 0, 2)
+RaisedRippler2.Size = UDim2.new(0, 1, 1, -4)
+
+local RaisedRippler3 = Rippler:Clone()
+RaisedRippler3.Position = UDim2.new(0, 1, 0, 1)
+RaisedRippler3.Size = UDim2.new(0, 1, 1, -2)
+
+local RaisedRippler4 = RaisedRippler3:Clone()
+RaisedRippler4.Position = UDim2.new(1, -2, 0, 1)
+
+local RaisedRippler5 = RaisedRippler2:Clone()
+RaisedRippler5.Position = UDim2.new(1, -1, 0, 2)
 
 local Ripple = Instance.new("ImageLabel")
 Ripple.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -39,7 +84,7 @@ Ripple.Size = UDim2.new(0, 4, 0, 4)
 Ripple.Image = "rbxassetid://517259585"
 Ripple.ImageTransparency = 0.8
 Ripple.Name = "Ripple"
-Ripple.ZIndex = 7
+Ripple.ZIndex = 8
 
 -- Preload Ink Ripple
 game:GetService("ContentProvider"):Preload(Ripple.Image)
@@ -52,14 +97,20 @@ local function __newindex(self, i, v)
 	if v then
 		if i == "Parent" and v:IsA("GuiObject") then
 			Corner.ImageColor3 = v.BackgroundColor3
-			Button.ZIndex = v.ZIndex + 1
-			Corner.ZIndex = v.ZIndex + 3
+			-- Button.ZIndex = v.ZIndex + 1
+			-- Corner.ZIndex = v.ZIndex + 3
+
 			self.Connection[1]:Disconnect()
 			self.Connection[1] = v:GetPropertyChangedSignal("BackgroundColor3"):Connect(function()
 				Corner.ImageColor3 = v.BackgroundColor3
 			end)
 		elseif i == "TextColor3" then
 			Corner.BackgroundColor3 = v
+		elseif i == "BackgroundColor3" then
+			local Raised = Button:FindFirstChild("Raised")
+			if Raised then
+				Raised.ImageColor3 = v
+			end
 		end
 	end
 	Button[i] = v
@@ -85,7 +136,9 @@ local function __namecall(self, ...)
 			}
 		}
 
-		return delay(0.15, self.Up)
+		return delay(0.15, function()
+			self.Up()
+		end)
 	end
 
 	return Button(Method, unpack(Arguments)) -- Button[Method](Button, unpack(Arguments))
@@ -95,10 +148,19 @@ end
 local Button = {}
 
 function Button.new(Type, Parent, Theme)
-	-- Globals
-	local Button, Corner, LastRipple, CornerBackgroundTransparency
+	assert(Type == "Flat" or Type == "Custom" or Type == "Raised", "[Button] Invalid Button Type; expected \"Flat\", \"Custom\", or \"Raised\"")
 
-	-- Pseudo Object
+	-- Globals
+	local LastRipple, CornerBackgroundTransparency, DepthRenderer
+
+	local Button = TextButton:Clone()
+	local Corner = Button.Corner
+	local Ripplers = {Button.Rippler}
+	local PreviousRipples = {}
+	local RipplerCount = 1
+
+	Corner.BackgroundColor3 = Button.TextColor3
+
 	local Interactable = newproxy(true)
 	local Metatable = getmetatable(Interactable)
 	Metatable.__newindex = __newindex
@@ -109,37 +171,50 @@ function Button.new(Type, Parent, Theme)
 		return Metatable[i] or Button[i]
 	end
 
-	if Type == "Flat" or Type == "Custom" then
-		Button = FlatButton:Clone()
-		Corner = Button.Corner
+	CornerBackgroundTransparency = 0.88
 
-		Metatable.Button = Button
-
-		Corner.BackgroundColor3 = Button.TextColor3
-		Interactable.Parent = Parent
-
-		if Theme then
-			Interactable.TextColor3 = Theme.TextColor
-		end
-		
-		CornerBackgroundTransparency = 0.88
-
-		if Type == "Custom" then
-			Corner.ImageTransparency = 1
-		end
-	elseif Type == "Raised" then
-		CornerBackgroundTransparency = 0.6
-		error("[Button] Invalid Button Type; not yet implemented")
-	else
-		error("[Button] Invalid Button Type; expected \"Flat\" or \"Custom\"")
+	if Type ~= "Flat" then
+		Corner.ImageTransparency = 1
 	end
 
+	if Type == "Raised" then
+		local ButtonImage = RaisedButtonImage:Clone()
+		ButtonImage.Parent = Button
+		DepthRenderer = Shadow.new(RAISED_BASE_ELEVATION, ButtonImage)
+
+		Ripplers[1]:Destroy()
+		RipplerCount = 5
+		Ripplers = {
+			RaisedRippler:Clone();
+			RaisedRippler2:Clone();
+			RaisedRippler3:Clone();
+			RaisedRippler4:Clone();
+			RaisedRippler5:Clone();
+		}
+		
+		for a = 1, RipplerCount do
+			Ripplers[a].Parent = Button
+		end
+		
+		CornerBackgroundTransparency = 0.6
+	end
+	
 	function Metatable.Down(InputObject)
 		if InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", CornerBackgroundTransparency, "Standard", 0.35, true)
+			if DepthRenderer then
+				DepthRenderer:ChangeElevation(RAISED_BASE_ELEVATION)
+			end
 		elseif ValidInputEnums[InputObject.UserInputType] then
-			if LastRipple then
-				Tween(LastRipple, "ImageTransparency", 1, "Deceleration", 1, false, true)
+			if PreviousRipples[1] then
+				for a = 1, RipplerCount do
+					Tween(PreviousRipples[a], "ImageTransparency", 1, "Deceleration", 1, false, true)
+					PreviousRipples[a] = nil
+				end
+			end
+
+			if DepthRenderer then
+				DepthRenderer:ChangeElevation(RAISED_ELEVATION)
 			end
 			
 			-- Find furthest Corner distance
@@ -148,15 +223,19 @@ function Button.new(Type, Parent, Theme)
 			local a, b, c, d = (X*X + Y*Y) ^ 0.5, (X*X + W*W) ^ 0.5, (V*V + Y*Y) ^ 0.5, (V*V + W*W) ^ 0.5 -- Calculate distance between mouse and corners
 			local Diameter = 2*(a > b and a > c and a > d and a or b > c and b > d and b or c > d and c or d) + 2.5 -- Find longest distance between mouse and a corner
 
-			local Ripple = Ripple:Clone()
-			LastRipple = Ripple
+			for a = 1, RipplerCount do
+				local Ripple = Ripple:Clone()
+				PreviousRipples[a] = Ripple
 
-			Ripple.ImageColor3 = Button.TextColor3
-			Ripple.Position = UDim2.new(0, X, 0, Y)
-			Ripple.ZIndex = Corner.ZIndex - 1
-			Ripple.Parent = Button
+				local CurrentRippler = Ripplers[a]
 
-			Tween(Ripple, "Size", UDim2.new(0, Diameter, 0, Diameter), "Deceleration", 0.5)
+				Ripple.ImageColor3 = Button.TextColor3
+				Ripple.Position = UDim2.new(0, X - CurrentRippler.AbsolutePosition.X + Button.AbsolutePosition.X, 0, Y - CurrentRippler.AbsolutePosition.Y + Button.AbsolutePosition.Y)
+				-- Ripple.ZIndex = Corner.ZIndex - 1
+				Ripple.Parent = Ripplers[a]
+
+				Tween(Ripple, "Size", UDim2.new(0, Diameter, 0, Diameter), "Deceleration", 0.5)
+			end
 		end
 	end
 
@@ -164,14 +243,28 @@ function Button.new(Type, Parent, Theme)
 		if InputObject and InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", 1, "Standard", 0.35, true)
 		end
-		if LastRipple then
-			Tween(LastRipple, "ImageTransparency", 1, "Deceleration", 1, false, true)
-			LastRipple = nil
+		
+		if PreviousRipples[1] then
+			for a = 1, RipplerCount do
+				Tween(PreviousRipples[a], "ImageTransparency", 1, "Deceleration", 1, false, true)
+				PreviousRipples[a] = nil
+			end
+		end
+
+		if DepthRenderer then
+			DepthRenderer:ChangeElevation(RAISED_BASE_ELEVATION)
 		end
 	end
 
 	Button.InputBegan:Connect(Metatable.Down)
 	Button.InputEnded:Connect(Metatable.Up)
+
+	Metatable.Button = Button
+	__newindex(Metatable, "Parent", Parent)
+
+	if Theme then
+		__newindex(Metatable, "TextColor3", Theme.TextColor)
+	end
 
 	return Interactable
 end
