@@ -1,3 +1,7 @@
+-- Simple Shadow Renderer
+-- @readme https://github.com/RoStrap/UI/blob/master/README.md
+-- @author Validark
+
 local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
 local Tween = Resources:LoadLibrary("Tween")
 
