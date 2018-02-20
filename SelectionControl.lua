@@ -13,8 +13,11 @@
 		I don't know what looks best. We may just have to demo a bunch of different versions.
 --]]
 
+local ContentProvider = game:GetService("ContentProvider")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 -- Load Libraries
-local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
+local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 local Tween = Resources:LoadLibrary("Tween")
 local Colors = Resources:LoadLibrary("Colors")
 
@@ -25,7 +28,7 @@ local floor = math.floor
 -- Configuration
 local RIPPLE_TRANSPARENCY = 0.8
 
-local ANIMATION_TIME = 0.2 -- 0.1625
+local ANIMATION_TIME = 0.1625
 local RIPPLE_ENTER_TIME = 0.5
 local RIPPLE_EXIT_TIME = 0.5
 
@@ -82,11 +85,13 @@ local SETS_GOALS = {
 
 -- Images
 local RIPPLE_IMAGE = "rbxassetid://517259585"
-local INNER_CHECKBOX_IMAGE = "rbxassetid://1441415066"
+local INNER_CHECKBOX_IMAGE = "rbxassetid://1441619948"
 local OUTER_CHECKBOX_IMAGE = "rbxassetid://1441415558"
 
 -- Preload Images
-game:GetService("ContentProvider"):Preload(RIPPLE_IMAGE)
+ContentProvider:Preload(RIPPLE_IMAGE)
+ContentProvider:Preload(INNER_CHECKBOX_IMAGE)
+ContentProvider:Preload(OUTER_CHECKBOX_IMAGE)
 
 -- Object Data
 local NO_SIZE = UDim2.new(0, 0, 0, 0)
@@ -137,9 +142,7 @@ end
 local function SetCheckboxColorAndTransparency(Grid, Color, Transparency)
 	local Opacity = (1 - Transparency)
 
-	Grid.InnerImage.ImageTransparency = Transparency
 	Grid.OuterImage.ImageTransparency = Transparency
-	Grid.InnerImage.ImageColor3 = Color
 	Grid.OuterImage.ImageColor3 = Color
 
 	for Name, BackgroundTransparency in next, SETS do
@@ -207,14 +210,14 @@ local function DrawCheckmark(x, Grid)
 			Grid[14 * (a + 1) + b + c].BackgroundTransparency = 0.5
 		end
 		Grid[a * (14 - c) + c + d].BackgroundTransparency = c == 1 and 0.5 or 0.51 -- 14 * a + -c * a + d + c
+
+		if a == 2 then
+			Grid.OuterImage.Image = INNER_CHECKBOX_IMAGE
+			Grid.OuterImage.Visible = true
+			Grid.GridFrame.Visible = false
+		end
 	end
 	Grid[160].BackgroundTransparency = 0.5 -- 12, 6
-
-	if x == 1 then
-		Grid.GridFrame.Visible = false
-		Grid.InnerImage.Visible = true
-		Grid.OuterImage.Visible = true
-	end
 end
 
 local function FillCenter(x, Grid)
@@ -279,10 +282,10 @@ local function EmptyCenter(x, Grid)
 		end
 	end
 
-	if x == 1 then
-		Grid.GridFrame.Visible = false
-		Grid.InnerImage.Visible = false
+	if CurrentSize == 7 then
+		Grid.OuterImage.Image = OUTER_CHECKBOX_IMAGE
 		Grid.OuterImage.Visible = true
+		Grid.GridFrame.Visible = false
 	end
 end
 
@@ -390,17 +393,9 @@ local Checkbox do
 	OuterImage.BackgroundTransparency = 1
 	OuterImage.Position = MIDDLE_POSITION
 	OuterImage.Size = CHECKBOX_SIZE
-
-	local InnerImage = OuterImage:Clone()
-
 	OuterImage.Image = OUTER_CHECKBOX_IMAGE
 	OuterImage.Name = "OuterImage"
 	OuterImage.Parent = Checkbox
-
-	InnerImage.Visible = false
-	InnerImage.Image = INNER_CHECKBOX_IMAGE
-	InnerImage.Name = "InnerImage"
-	InnerImage.Parent = Checkbox
 
 	for a = 1, 14 do
 		local Existant = 14 * (a - 1)
@@ -635,7 +630,6 @@ function SelectionControl.new(Type, Parent)
 		YOffset = 0;
 
 		GridFrame = GridFrame;
-		InnerImage = Button.InnerImage;
 		OuterImage = Button.OuterImage;
 	}
 
@@ -716,7 +710,6 @@ function SelectionControl.new(Type, Parent)
 					Grid.OpenTween2:Stop()
 				end
 
-				Grid.InnerImage.Visible = false
 				Grid.OuterImage.Visible = false
 				Grid.GridFrame.Visible = true
 
@@ -757,7 +750,6 @@ function SelectionControl.new(Type, Parent)
 			end
 		end
 
-		Button.InnerImage.ZIndex = ZIndex + 1
 		Button.OuterImage.ZIndex = ZIndex + 1
 	end)
 
