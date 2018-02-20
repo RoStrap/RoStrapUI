@@ -13,8 +13,11 @@
 		I don't know what looks best. We may just have to demo a bunch of different versions.
 --]]
 
+local ContentProvider = game:GetService("ContentProvider")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 -- Load Libraries
-local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
+local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 local Tween = Resources:LoadLibrary("Tween")
 local Colors = Resources:LoadLibrary("Colors")
 
@@ -82,9 +85,13 @@ local SETS_GOALS = {
 
 -- Images
 local RIPPLE_IMAGE = "rbxassetid://517259585"
+local INNER_CHECKBOX_IMAGE = "rbxassetid://1441619948"
+local OUTER_CHECKBOX_IMAGE = "rbxassetid://1441415558"
 
 -- Preload Images
-game:GetService("ContentProvider"):Preload(RIPPLE_IMAGE)
+ContentProvider:Preload(RIPPLE_IMAGE)
+ContentProvider:Preload(INNER_CHECKBOX_IMAGE)
+ContentProvider:Preload(OUTER_CHECKBOX_IMAGE)
 
 -- Object Data
 local NO_SIZE = UDim2.new(0, 0, 0, 0)
@@ -134,6 +141,9 @@ end
 
 local function SetCheckboxColorAndTransparency(Grid, Color, Transparency)
 	local Opacity = (1 - Transparency)
+
+	Grid.OuterImage.ImageTransparency = Transparency
+	Grid.OuterImage.ImageColor3 = Color
 
 	for Name, BackgroundTransparency in next, SETS do
 		local Transparency = Opacity * BackgroundTransparency + Transparency
@@ -200,6 +210,12 @@ local function DrawCheckmark(x, Grid)
 			Grid[14 * (a + 1) + b + c].BackgroundTransparency = 0.5
 		end
 		Grid[a * (14 - c) + c + d].BackgroundTransparency = c == 1 and 0.5 or 0.51 -- 14 * a + -c * a + d + c
+
+		if a == 2 then
+			Grid.OuterImage.Image = INNER_CHECKBOX_IMAGE
+			Grid.OuterImage.Visible = true
+			Grid.GridFrame.Visible = false
+		end
 	end
 	Grid[160].BackgroundTransparency = 0.5 -- 12, 6
 end
@@ -264,6 +280,12 @@ local function EmptyCenter(x, Grid)
 			Grid[14 * (End - 1) + a].BackgroundTransparency = BackgroundTransparency
 			Grid[14 * (a - 1) + End].BackgroundTransparency = BackgroundTransparency
 		end
+	end
+
+	if CurrentSize == 7 then
+		Grid.OuterImage.Image = OUTER_CHECKBOX_IMAGE
+		Grid.OuterImage.Visible = true
+		Grid.GridFrame.Visible = false
 	end
 end
 
@@ -357,13 +379,31 @@ local Checkbox do
 	Pixel.BorderSizePixel = 0
 	Pixel.Size = UDim2.new(0, 1, 0, 1)
 
+	local GridFrame = Instance.new("Frame")
+	GridFrame.AnchorPoint = MIDDLE_ANCHOR
+	GridFrame.BackgroundTransparency = 1
+	GridFrame.Name = "GridFrame"
+	GridFrame.Position = MIDDLE_POSITION
+	GridFrame.Size = CHECKBOX_SIZE
+	GridFrame.Visible = false
+	GridFrame.Parent = Checkbox
+
+	local OuterImage = Instance.new("ImageLabel")
+	OuterImage.AnchorPoint = MIDDLE_ANCHOR
+	OuterImage.BackgroundTransparency = 1
+	OuterImage.Position = MIDDLE_POSITION
+	OuterImage.Size = CHECKBOX_SIZE
+	OuterImage.Image = OUTER_CHECKBOX_IMAGE
+	OuterImage.Name = "OuterImage"
+	OuterImage.Parent = Checkbox
+
 	for a = 1, 14 do
 		local Existant = 14 * (a - 1)
 		for b = 1, 14 do
 			local Pixel = Pixel:Clone()
 			Pixel.Name = Existant + b
 			Pixel.Position = UDim2.new(0, b + 4, 0, a + 4)
-			Pixel.Parent = Checkbox
+			Pixel.Parent = GridFrame
 		end
 	end
 
@@ -397,8 +437,8 @@ local Checkbox do
 			Vertical.Position = UDim2.new(0, b + c, 0, d)
 			Vertical.Size = UDim2.new(0, 1, 0, e)
 
-			Horizontal.Parent = Checkbox
-			Vertical.Parent = Checkbox
+			Horizontal.Parent = GridFrame
+			Vertical.Parent = GridFrame
 		end
 	end
 
@@ -414,8 +454,8 @@ local Checkbox do
 		F2.BackgroundTransparency = CornerTransparency
 		F2.Position = UDim2.new(0, a, 0, 23 - a)
 
-		F1.Parent = Checkbox
-		F2.Parent = Checkbox
+		F1.Parent = GridFrame
+		F2.Parent = GridFrame
 	end
 
 	Pixel.Name = "InnerCorners"
@@ -429,8 +469,8 @@ local Checkbox do
 		F2.BackgroundTransparency = BackgroundTransparency
 		F2.Position = UDim2.new(0, a, 0, 23 - a)
 
-		F1.Parent = Checkbox
-		F2.Parent = Checkbox
+		F1.Parent = GridFrame
+		F2.Parent = GridFrame
 	end
 
 	Pixel.Name = "Edges"
@@ -446,8 +486,8 @@ local Checkbox do
 			F2.BackgroundTransparency = EdgeTransparency
 			F2.Position = UDim2.new(0, b, 0, a)
 
-			F1.Parent = Checkbox
-			F2.Parent = Checkbox
+			F1.Parent = GridFrame
+			F2.Parent = GridFrame
 		end
 	end
 
@@ -463,8 +503,8 @@ local Checkbox do
 			F2.BackgroundTransparency = BackgroundTransparency
 			F2.Position = UDim2.new(0, b, 0, a)
 
-			F1.Parent = Checkbox
-			F2.Parent = Checkbox
+			F1.Parent = GridFrame
+			F2.Parent = GridFrame
 		end
 	end
 	
@@ -581,24 +621,28 @@ function SelectionControl.new(Type, Parent)
 
 	local Bindable = Instance.new("BindableEvent")
 	local Button = Checkbox:Clone()
+	local GridFrame = Button.GridFrame
 	Button.Parent = Parent
 
 	-- Cache Pixel Grid
 	local Grid = {
 		XOffset = 0;
 		YOffset = 0;
+
+		GridFrame = GridFrame;
+		OuterImage = Button.OuterImage;
 	}
 
 	for Name in next, SETS do
 		local Count = 0
 		local Objects = {}
-		local Object = Button:FindFirstChild(Name)
+		local Object = GridFrame:FindFirstChild(Name)
 
 		while Object do
 			Count = Count + 1
 			Object.Name = ""
 			Objects[Count] = Object
-			Object = Button:FindFirstChild(Name)
+			Object = GridFrame:FindFirstChild(Name)
 		end
 		
 		Grid[Name] = Objects
@@ -608,7 +652,7 @@ function SelectionControl.new(Type, Parent)
 	for a = 1, 14 do
 		local Existant = 14 * (a - 1)
 		for b = 1, 14 do
-			Grid[Existant + b] = Button[Existant + b]
+			Grid[Existant + b] = GridFrame[Existant + b]
 		end
 	end
 
@@ -628,7 +672,6 @@ function SelectionControl.new(Type, Parent)
 		-- Protected
 		__index = Button;
 	}
-	
 	
 	Button.Parent = Parent
 	
@@ -667,6 +710,9 @@ function SelectionControl.new(Type, Parent)
 					Grid.OpenTween2:Stop()
 				end
 
+				Grid.OuterImage.Visible = false
+				Grid.GridFrame.Visible = true
+
 				if Checked then
 					SetCheckboxColorAndTransparency(Grid, self.EnabledColor3, 0)
 					Grid.OpenTween = Tween.new(FILL_DURATION, CENTER_FILL_BEZIER, FillCenter, Grid)
@@ -691,11 +737,23 @@ function SelectionControl.new(Type, Parent)
 
 	Button:GetPropertyChangedSignal("ZIndex"):Connect(function()
 		local ZIndex = Button.ZIndex
+		GridFrame.ZIndex = ZIndex
+
 		for a = 1, 196 do
-			Grid[a].ZIndex = ZIndex + 2
+			Grid[a].ZIndex = ZIndex
 		end
+
+		for Name in next, SETS do
+			local Set = Grid[Name]
+			for a = 1, #Set do
+				Set[a].ZIndex = ZIndex
+			end
+		end
+
+		Button.OuterImage.ZIndex = ZIndex + 1
 	end)
 
+	Button.ZIndex = 2
 	local Interactable = newproxy(true)
 	local Metatable = getmetatable(Interactable)
 	Metatable.__index = setmetatable(self, self)
