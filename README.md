@@ -1,6 +1,5 @@
-# UI
+# Material
 User Interface Modules for Roblox
-
 
 ## Colors
 Colors taken from [Material Design Color Palette](https://material.io/guidelines/style/color.html#color-color-palette), compiled via our [Colors Generator](https://github.com/RoStrap/UI/blob/master/Colors%20Generator.md).
@@ -68,7 +67,7 @@ Submit:Ripple() -- Ripples :D
 ```
 
 ### Button Types
-The two button types are "Flat" and "Custom". There should also be a "Raised" type but I am not smart enough to figure out how to replicate the button-press effect accurately.
+The three button types are "Flat", "Custom", and "Raised". The "Raised" type isn't perfect, as it is difficult to faithfully render in Roblox.
 
 #### Flat
 A `FlatButton` has one descendant by default, called `Corner`. This is the [ImageLabel](http://wiki.roblox.com/index.php?title=API:Class/ImageLabel) that overlays a 2dp corner image over your `FlatButton`. It's [ImageColor3](http://wiki.roblox.com/index.php?title=API:Class/GuiObject/ImageColor3) property is automatically set to `FlatButton.Parent.BackgroundColor3`. Whenever you set the `Parent` property, it will attempt to update to the aforementioned value. You can set it manually with the following:
@@ -78,6 +77,9 @@ FlatButton.Corner.ImageColor3 = Color3.fromRGB(255, 255, 255)
 
 #### Custom
 A `CustomButton` is exactly the same as a `FlatButton`, except its `Corner` object has its [ImageTransparency](http://wiki.roblox.com/index.php?title=API:Class/GuiObject/ImageTransparency) set to 0. Use this if you don't want visible corner overlays.
+
+#### Raised
+For when you want your buttons to lift.
 
 ## SelectionControl
 Material design selection controls based on [Material.io specifications](https://material.io/guidelines/components/selection-controls.html#). Will include Checkbox, Radio, and Switch elements. Currently, only Checkbox is available.
