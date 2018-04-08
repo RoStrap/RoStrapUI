@@ -13,7 +13,6 @@ local Standard = Bezier.new(0.4, 0.0, 0.2, 1)
 local Heartbeat = RunService.Heartbeat
 
 local function AsymmetricTransformation(Button, EndSize)
-	Button.Visible = true -- Sorry, but we need to assume
 	local StartX = Button.Size.X
 	local StartY = Button.Size.Y
 	local EndX = EndSize.X
@@ -40,7 +39,7 @@ local function AsymmetricTransformation(Button, EndSize)
 	if Button.AbsoluteSize.X * Button.AbsoluteSize.Y < Clone.AbsoluteSize.X * Clone.AbsoluteSize.Y then
 		-- Expanding
 		Clone:Destroy()
-		local Duration = 0.225
+		local Duration = 0.375
 		local HeightStart = Duration*0.1
 		local WidthDuration = Duration*0.75
 
@@ -107,9 +106,9 @@ local function AsymmetricTransformation(Button, EndSize)
 			else
 				Connection:Disconnect()
 				Button.Size = EndSize
-				if EndSize == UDim2.new() then
+				--[[if EndSize == UDim2.new() then
 					Button.Visible = false
-				end
+				end]]
 			end
 		end)
 	end
