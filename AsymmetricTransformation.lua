@@ -13,6 +13,7 @@ local Standard = Bezier.new(0.4, 0.0, 0.2, 1)
 local Heartbeat = RunService.Heartbeat
 
 local function AsymmetricTransformation(Button, EndSize)
+	Button.Visible = true -- Sorry, but we need to assume
 	local StartX = Button.Size.X
 	local StartY = Button.Size.Y
 	local EndX = EndSize.X
