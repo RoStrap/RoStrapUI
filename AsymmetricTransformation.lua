@@ -67,7 +67,7 @@ local function AsymmetricTransformation(Button, EndSize)
 					YOffset = YStartOffset
 				end
 
-				Button.Size = UDim2.new(XScale, XOffset, YScale, YOffset)
+				Button.Size = UDim2.new(math.ceil(XScale), math.ceil(XOffset), math.ceil(YScale), math.ceil(YOffset))
 			else
 				Connection:Disconnect()
 				Button.Size = EndSize
@@ -103,7 +103,7 @@ local function AsymmetricTransformation(Button, EndSize)
 					XOffset = XStartOffset
 				end
 	
-				Button.Size = UDim2.new(XScale, XOffset, YScale, YOffset)
+				Button.Size = UDim2.new(math.ceil(XScale), math.ceil(XOffset), math.ceil(YScale), math.ceil(YOffset))
 			else
 				Connection:Disconnect()
 				Button.Size = EndSize
