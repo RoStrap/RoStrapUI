@@ -2,14 +2,14 @@
 -- @readme https://github.com/RoStrap/UI/blob/master/README.md
 -- @author Validark
 
+-- Elevations
+local RAISED_BASE_ELEVATION = 3
+local RAISED_ELEVATION = 6
+
 -- Import Tween Library
 local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
 local Tween = Resources:LoadLibrary("Tween")
 local Shadow = Resources:LoadLibrary("Shadow")
-
--- Elevations
-local RAISED_BASE_ELEVATION = 3
-local RAISED_ELEVATION = 6
 
 -- Enums
 local MouseMovement = Enum.UserInputType.MouseMovement
@@ -21,13 +21,11 @@ local ValidInputEnums = {
 	[Enum.UserInputType.MouseButton3] = true;
 }
 
-local FULL_SIZE = UDim2.new(1, 0, 1, 0)
-
 -- Objects
 local RaisedButtonImage = Instance.new("ImageLabel")
 RaisedButtonImage.BackgroundTransparency = 1
 RaisedButtonImage.ScaleType = Enum.ScaleType.Slice
-RaisedButtonImage.Size = FULL_SIZE
+RaisedButtonImage.Size = UDim2.new(1, 0, 1, 0)
 RaisedButtonImage.SliceCenter = Rect.new(7, 7, 14, 14)
 RaisedButtonImage.Image = "rbxassetid://1409279673"
 RaisedButtonImage.Name = "Raised"
@@ -39,14 +37,10 @@ TextButton.BackgroundTransparency = 1
 TextButton.Name = "Button"
 TextButton.ZIndex = 6
 
-local Corner = Instance.new("ImageLabel")
-Corner.BackgroundTransparency = 1
+local Corner = RaisedButtonImage:Clone()
 Corner.BorderSizePixel = 0
 Corner.Image = "rbxassetid://550542844"
 Corner.Name = "Corner"
-Corner.ScaleType = Enum.ScaleType.Slice
-Corner.SliceCenter = Rect.new(7, 7, 14, 14)
-Corner.Size = FULL_SIZE
 Corner.ZIndex = 9
 Corner.Parent = TextButton
 
@@ -55,7 +49,7 @@ Rippler.BackgroundTransparency = 1
 Rippler.BorderSizePixel = 0
 Rippler.ClipsDescendants = true
 Rippler.Name = "Rippler"
-Rippler.Size = FULL_SIZE
+Rippler.Size = UDim2.new(1, 0, 1, 0)
 Rippler.ZIndex = 7
 Rippler.Parent = TextButton
 
@@ -93,7 +87,7 @@ game:GetService("ContentProvider"):Preload(Ripple.Image)
 local function __newindex(self, i, v)
 	local Button = self.Button
 	local Corner = Button.Corner
-	
+
 	if v then
 		if i == "Parent" and v:IsA("GuiObject") then
 			Corner.ImageColor3 = v.BackgroundColor3
@@ -191,14 +185,14 @@ function Button.new(Type, Parent, Theme)
 			RaisedRippler4:Clone();
 			RaisedRippler5:Clone();
 		}
-		
+
 		for a = 1, RipplerCount do
 			Ripplers[a].Parent = Button
 		end
-		
+
 		CornerBackgroundTransparency = 0.6
 	end
-	
+
 	function Metatable.Down(InputObject)
 		if InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", CornerBackgroundTransparency, "Standard", 0.35, true)
@@ -216,7 +210,7 @@ function Button.new(Type, Parent, Theme)
 			if DepthRenderer then
 				DepthRenderer:ChangeElevation(RAISED_ELEVATION)
 			end
-			
+
 			-- Find furthest Corner distance
 			local X, Y = InputObject.Position.X - Button.AbsolutePosition.X, InputObject.Position.Y - Button.AbsolutePosition.Y -- Get near corners
 			local V, W = X - Button.AbsoluteSize.X, Y - Button.AbsoluteSize.Y -- Get far corners
@@ -243,7 +237,7 @@ function Button.new(Type, Parent, Theme)
 		if InputObject and InputObject.UserInputType == MouseMovement then
 			Tween(Corner, "BackgroundTransparency", 1, "Standard", 0.35, true)
 		end
-		
+
 		if PreviousRipples[1] then
 			for a = 1, RipplerCount do
 				Tween(PreviousRipples[a], "ImageTransparency", 1, "Deceleration", 1, false, true)
