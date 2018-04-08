@@ -40,7 +40,7 @@ local function AsymmetricTransformation(Button, EndSize)
 	if Button.AbsoluteSize.X * Button.AbsoluteSize.Y < Clone.AbsoluteSize.X * Clone.AbsoluteSize.Y then
 		-- Expanding
 		Clone:Destroy()
-		local Duration = 0.375
+		local Duration = 0.225
 		local HeightStart = Duration*0.1
 		local WidthDuration = Duration*0.75
 
