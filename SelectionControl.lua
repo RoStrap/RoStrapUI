@@ -1,7 +1,7 @@
 -- Material Selection Controls
 -- @readme https://github.com/RoStrap/UI/blob/master/README.md
--- @specs https://material.io/guidelines/components/selection-controls.html#
 -- @author Validark
+-- @specs https://material.io/guidelines/components/selection-controls.html#
 
 --[[
 	The Checkbox element animations are all fully scripted and contained within this module.
