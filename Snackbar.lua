@@ -1,10 +1,11 @@
 -- Simple Snackbar Generator
 -- @readme https://github.com/RoStrap/UI/blob/master/README.md
+-- @author Validark
+
 -- Snackbar.new(string Text, ScreenGui Screen)
 --	Generates a SnackbarFrame with message Text
 --	Expect more parameters in the future
 -- @spec https://material.io/guidelines/components/snackbars-toasts.html
--- @author Validark
 
 local HEIGHT = 48
 local ENTER_TIME = 0.275
