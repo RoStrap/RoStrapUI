@@ -1,7 +1,8 @@
 -- Transform function for Paper
+-- @author Validark
+
 -- AsymmetricTransformation(GuiObject Button, UDim2 EndSize)
 -- @specs https://material.io/guidelines/motion/transforming-material.html#
--- @author Validark
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
