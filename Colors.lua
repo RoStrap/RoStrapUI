@@ -1,3 +1,5 @@
+-- Material Design Color Palette
+
 local rgb = Color3.fromRGB
 
 return {
