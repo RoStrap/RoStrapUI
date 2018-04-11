@@ -250,10 +250,21 @@ function Shadow.new(Elevation, Parent)
 		Shadow.Size = Properties.Size
 		Shadow.Position = Properties.Position
 		Shadow.ImageTransparency = Properties.ImageTransparency
-		Shadow.ZIndex = Parent.ZIndex - 1
 		Shadow.Parent = Parent
 
 		self[Name] = Shadow
+	end
+	
+	if Parent then
+		local function AdjustZIndexAccordingToParent()
+			local ZIndex = Parent.ZIndex - 1
+			self.AmbientShadow = ZIndex
+			self.PenumbraShadow = ZIndex
+			self.UmbraShadow = ZIndex
+		end
+		
+		Parent:GetPropertyChangedSignal("ZIndex"):Connect(AdjustZIndexAccordingToParent)
+		AdjustZIndexAccordingToParent()
 	end
 
 	return self
