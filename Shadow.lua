@@ -250,6 +250,7 @@ function Shadow.new(Elevation, Parent)
 		Shadow.Size = Properties.Size
 		Shadow.Position = Properties.Position
 		Shadow.ImageTransparency = Properties.ImageTransparency
+		Shadow.ZIndex = Parent.ZIndex - 1
 		Shadow.Parent = Parent
 
 		self[Name] = Shadow
