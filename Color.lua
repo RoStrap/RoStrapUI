@@ -1,8 +1,11 @@
--- Material Design Color Palette
+-- Color utilities with Material Design's 2014 Color Palette
+
+local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
+local Table = Resources:LoadLibrary("Table")
 
 local rgb = Color3.fromRGB
 
-return {
+local Color = {
 	Red = {
 		[50] = rgb(255, 235, 238);
 		[100] = rgb(255, 205, 210);
@@ -365,3 +368,78 @@ return {
 	Black = rgb(0, 0, 0);
 	White = rgb(255, 255, 255);
 }
+
+function Color.toRGBString(c, a)
+	local r = c.r * 255 + 0.5
+	local g = c.g * 255 + 0.5
+	local b = c.b * 255 + 0.5
+
+	if a then
+		return ("rgba(%u, %u, %u, %u)"):format(r, g, b, a * 255 + 0.5)
+	else
+		return ("rgb(%u, %u, %u)"):format(r, g, b)
+	end
+end
+
+function Color.toHexString(c, a)
+	local r = c.r * 255 + 0.5
+	local g = c.g * 255 + 0.5
+	local b = c.b * 255 + 0.5
+
+	if a then
+		return ("#%X%X%X%X"):format(r, g, b, a * 255 + 0.5)
+	else
+		return ("#%X%X%X"):format(r, g, b)
+	end
+end
+
+local Hash = ("#"):byte()
+
+function Color.fromHex(Hex)
+	-- Converts a 3-digit or 6-digit hex color to RGB
+	-- Takes in a string of the form: "#FFFFFF" or "#FFF" or a 6-digit hexadecimal number
+
+	local Type = type(Hex)
+	local Digits
+
+	if Type == "string" then
+		if Hex:byte() == Hash then Hex = Hex:sub(2) end -- Remove # from beginning
+
+		Digits = #Hex
+
+		if Digits == 8 then -- We got some alpha :D
+			return Color.fromHex(Hex:sub(1, -3)), tonumber(Hex, 16) % 0x000100 / 255
+		end
+
+		Hex = tonumber(Hex, 16) -- Leverage Lua's base converter :D
+	elseif Type == "number" then
+		Digits = 6 -- Assume numbers are 6 digit hex numbers
+	end
+
+	if Digits == 6 then
+		-- Isolate R as first digits 5 and 6, G as 3 and 4, B as 1 and 2
+
+		local R = (Hex - Hex % 0x010000) / 0x010000
+		Hex = Hex - R * 0x010000
+		local G = (Hex - Hex % 0x000100) / 0x000100
+
+		return rgb(R, G, Hex - G * 0x000100)
+	elseif Digits == 3 then
+		-- 3-digit to 6-digit conversion: 123 -> 112233
+		-- Thus, we isolate each digits' value and multiply by 17
+
+		local R = (Hex - Hex % 0x100) / 0x100
+		Hex = Hex - R * 0x100
+		local G = (Hex - Hex % 0x10) / 0x10
+
+		return rgb(R * 0x11, G * 0x11, (Hex - G * 0x10) * 0x11)
+	end
+end
+
+local floor = math.floor
+
+function Color.toHex(Color3)
+	return floor(Color3.r * 0xFF + 0.5) * 0x010000 +  floor(Color3.g * 0xFF + 0.5) * 0x000100 + floor(Color3.b * 0xFF + 0.5) * 0x000001
+end
+
+return Table.Lock(Color)
