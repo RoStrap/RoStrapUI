@@ -15,8 +15,8 @@ local SMALLEST_WIDTH = 294
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 
-local Maid = Resources:LoadLibrary("Maid")
 local Tween = Resources:LoadLibrary("Tween")
+local Janitor = Resources:LoadLibrary("Janitor")
 
 local TweenCompleted = Enum.TweenStatus.Completed
 
@@ -51,7 +51,7 @@ local Snackbar = {}
 function Snackbar.new(Text, Screen)
 	-- @param string Text the message you want to appear
 	-- @param ScreenGui Screen the Parent of the Snackbar
-	
+
 	if OpenSnackbar then
 		local PreviousSnackbar = OpenSnackbar
 		local PreviousLabel = PreviousSnackbar:FindFirstChild("Label")
@@ -65,7 +65,7 @@ function Snackbar.new(Text, Screen)
 
 		OpenTween:Stop()
 		PreviousSnackbar.ZIndex = 2
-		
+
 		Tween(PreviousSnackbar, "Position", ExitPosition, "Acceleration", ENTER_TIME * 0.7, false, function(Completed)
 			if Completed == TweenCompleted then
 				PreviousSnackbar:Destroy()
@@ -76,17 +76,17 @@ function Snackbar.new(Text, Screen)
 		end)
 	end
 
-	local SnackbarMaid = Maid.new()
+	local SnackbarJanitor = Janitor.new()
 	local SnackbarFrame = DefaultSnackbar:Clone()
 	OpenSnackbar = SnackbarFrame
 	local Label = SnackbarFrame:FindFirstChild("Label")
 
 	if Label then
 		Label.Text = Text
-		SnackbarMaid:LinkToInstance(SnackbarFrame)
-		SnackbarMaid:GiveTask(SnackbarFrame.Label:GetPropertyChangedSignal("TextBounds"):Connect(function()
+		SnackbarJanitor:LinkToInstance(SnackbarFrame)
+		SnackbarJanitor:Add(SnackbarFrame.Label:GetPropertyChangedSignal("TextBounds"):Connect(function()
 			SnackbarFrame.Size = UDim2.new(0, Label.TextBounds.X + HEIGHT > SMALLEST_WIDTH and Label.TextBounds.X + HEIGHT or SMALLEST_WIDTH, 0, HEIGHT)
-		end))
+		end), "Disconnect")
 	end
 
 	SnackbarFrame.Parent = Screen
