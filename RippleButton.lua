@@ -31,9 +31,6 @@ local function GetLuminosity(PrimaryColor3)
 	return PrimaryColor3.r * 0.299 + PrimaryColor3.g * 0.587 + PrimaryColor3.b * 0.114
 end
 
-local CLICK_RIPPLE_TRANSPARENCY = 0.77
-local HOVER_RIPPLE_TRANSPARENCY = 0.93
-
 local StateOpacity = { -- TODO: Derive these values based on the PrimaryColor3's luminosity
 	-- Material Design specs have values which are more subtle, which I don't think look ideal
 	[Enumeration.ButtonStyle.Flat.Value] = {
@@ -94,7 +91,6 @@ TooltipObject.ImageColor3 = Color3.fromRGB(97, 97, 97)
 TooltipObject.Image = RaisedImages[TOOLTIP_BORDER_RADIUS]
 TooltipObject.SliceCenter = Rect.new(TOOLTIP_BORDER_RADIUS, TOOLTIP_BORDER_RADIUS, 256 - TOOLTIP_BORDER_RADIUS, 256 - TOOLTIP_BORDER_RADIUS)
 TooltipObject.Name = "Tooltip"
-TooltipObject.Parent = ImageButton
 TooltipObject.AnchorPoint = Vector2.new(0.5, 0)
 TooltipObject.Position = UDim2.new(0.5, 0, 1, 8)
 
@@ -102,6 +98,7 @@ local ToolTipLabel = TextLabel:Clone()
 ToolTipLabel.TextColor3 = Color.White
 ToolTipLabel.TextSize = 12
 ToolTipLabel.TextTransparency = 1
+ToolTipLabel.Name = "TextLabel"
 ToolTipLabel.Parent = TooltipObject
 
 local Touch = Enum.UserInputType.Touch
@@ -118,7 +115,24 @@ return PseudoInstance:Register("RippleButton", {
 	Events = {};
 
 	Properties = {
-		Tooltip = Enumeration.ValueType.String;
+		Tooltip = function(self, Tip)
+			if Tip == "" then
+				if self.TooltipObject then
+					self.TooltipObject:Destroy()
+					self.TooltipObject = nil
+				end
+				return true
+			elseif type(Tip) == "string" then
+				self.TooltipObject = TooltipObject:Clone()
+				self.TooltipObject.ZIndex = self.ZIndex + 1
+				self.TooltipObject.TextLabel.Text = Tip
+				self.TooltipObject.TextLabel.ZIndex = self.ZIndex + 2
+				self.TooltipObject.Parent = self.Object
+				return true
+			else
+				return false
+			end
+		end;
 
 		BorderRadius = function(self, BorderRadius)
 			BorderRadius = Enumeration.BorderRadius:Cast(BorderRadius)
@@ -166,7 +180,6 @@ return PseudoInstance:Register("RippleButton", {
 			elseif ButtonStyle == Enumeration.ButtonStyle.Contained then
 				self.Object.ImageTransparency = 0
 				-- self.Object.ImageColor3 = self.PrimaryColor3
-				self.PrimaryColor3 = self.PrimaryColor3
 
 				self.Shadow = PseudoInstance.new("Shadow")
 				self.Shadow.Parent = self.Object
@@ -174,8 +187,11 @@ return PseudoInstance:Register("RippleButton", {
 				self.Elevation = 3
 			end
 
+			self.PrimaryColor3 = self.PrimaryColor3 -- re-render PrimaryColor3 :D
+
 			if IsOutlined then
 				self.OutlineImage = OutlineImage:Clone()
+				self.OutlineImage.ZIndex = self.ZIndex + 2
 				self.OutlineImage.Parent = self.Object
 				local Value = self.BorderRadius.Value
 
@@ -220,7 +236,17 @@ return PseudoInstance:Register("RippleButton", {
 		ZIndex = function(self, ZIndex)
 			self.Object.ZIndex = ZIndex + 1
 			self.TextLabel.ZIndex = ZIndex + 3
-			self.TooltipObject.ZIndex = ZIndex + 1
+
+			if self.TooltipObject then
+				self.TooltipObject.ZIndex = ZIndex + 1
+				self.TooltipObject.TextLabel.ZIndex = ZIndex + 2
+			end
+
+			if self.OutlineImage then
+				self.OutlineImage.ZIndex = ZIndex + 2
+			end
+
+			return true
 		end;
 	};
 
@@ -229,7 +255,6 @@ return PseudoInstance:Register("RippleButton", {
 	Init = function(self)
 		self:rawset("Object", ImageButton:Clone())
 		self.TextLabel = self.Object.TextLabel
-		self.TooltipObject = self.Object.Tooltip
 
 		self.Rippler = PseudoInstance.new("Rippler")
 		self.Rippler.RippleTransparency = 0.68
@@ -259,10 +284,10 @@ return PseudoInstance:Register("RippleButton", {
 					Tween(self.Object, "ImageTransparency", 1 - self.OverlayOpacity, Enumeration.EasingFunction.Deceleration, 0.1, true)
 				end
 
-				if self.Tooltip ~= "" then
+				local TooltipObj = self.TooltipObject
+
+				if TooltipObj then
 					-- Over 150ms, tooltips fade in and scale up using the deceleration curve. They fade out over 75ms.
-					local TooltipObj = self.TooltipObject
-					TooltipObj.TextLabel.Text = self.Tooltip
 
 					local NewInt = Int + 1
 					Int = NewInt
@@ -299,9 +324,12 @@ return PseudoInstance:Register("RippleButton", {
 			Int = Int + 1
 
 			local TooltipObj = self.TooltipObject
-			Tween(TooltipObj, "Size", UDim2.new(), Enumeration.EasingFunction.Deceleration, 0.075, true)
-			Tween(TooltipObj, "ImageTransparency", 1, Enumeration.EasingFunction.Deceleration, 0.075, true)
-			Tween(TooltipObj.TextLabel, "TextTransparency", 1, Enumeration.EasingFunction.Deceleration, 0.075, true)
+
+			if TooltipObj then
+				Tween(TooltipObj, "Size", UDim2.new(), Enumeration.EasingFunction.Deceleration, 0.075, true)
+				Tween(TooltipObj, "ImageTransparency", 1, Enumeration.EasingFunction.Deceleration, 0.075, true)
+				Tween(TooltipObj.TextLabel, "TextTransparency", 1, Enumeration.EasingFunction.Deceleration, 0.075, true)
+			end
 		end
 
 		self.Object.InputBegan:Connect(self.InputBegan)
