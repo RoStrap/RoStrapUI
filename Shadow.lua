@@ -1,10 +1,9 @@
 -- Shadow / Elevation Renderer PseudoInstance
--- @documentation https://rostrap.github.io/Libraries/Material/Shadow/
 -- @author Validark
 -- @author AmaranthineCodices - Made the Shadow images and created the rendering framework
 -- @original https://github.com/AmaranthineCodices/roact-material/blob/master/src/Components/Shadow.lua
 
-local SHADOW_TWEEN_TIME = 0.175 --0.275
+local SHADOW_TWEEN_TIME = 0.175 -- 0.275
 
 local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
 local Debug = Resources:LoadLibrary("Debug")
@@ -279,11 +278,11 @@ return PseudoInstance:Register("Shadow", {
 				for i = 1, 3 do
 					self[ShadowNames[i]].Parent = Parent
 				end
-
-				return true
-			else
+			elseif Parent ~= nil then
 				Debug.Error("bad argument 3 to Parent, expected GuiObject, got %s", Parent)
 			end
+
+			return true
 		end;
 	};
 
