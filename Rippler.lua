@@ -107,8 +107,9 @@ local PixelSize = UDim2.new(0, 1, 0, 1)
 
 local function DestroyRoundRipple(self)
 	for i = 1, #self do
-		self[i]:Destroy()
+		local Object = self[i]
 		self[i] = nil
+		Object:Destroy()
 	end
 end;
 
@@ -131,7 +132,10 @@ local RoundRippleMetatable = {
 		elseif i == "ImageTransparency" then
 			for a = 1, #self do
 				local RippleFrame = self[a]
-				RippleFrame.ImageTransparency = (1 - v) * RippleFrame.Parent.ImageTransparency + v
+				local Parent = RippleFrame.Parent
+				if Parent then
+					RippleFrame.ImageTransparency = (1 - v) * Parent.ImageTransparency + v
+				end
 			end
 		end
 	end;
@@ -160,14 +164,13 @@ return PseudoInstance:Register("Rippler", {
 			self:rawset("BorderRadius", Value)
 
 			local BorderRadius = Value.Value
-
 			local RippleFrames = self.RippleFrames
 
 			if RippleFrames then
-				for i = 1, #RippleFrames do
-					RippleFrames[i]:Destroy()
-					RippleFrames[i] = nil
-				end
+				DestroyRoundRipple(RippleFrames)
+			else
+				RippleFrames = {}
+				self.RippleFrames = RippleFrames
 			end
 
 			if BorderRadius == 0 then
@@ -176,11 +179,6 @@ return PseudoInstance:Register("Rippler", {
 				self.Style = Enumeration.RipplerStyle.Round
 				local Data = CornerData[BorderRadius]
 
-				if not RippleFrames then
-					RippleFrames = {}
-				end
-
-				self.RippleFrames = RippleFrames
 				local MiddleSquarePoint
 				local Container = self.Container
 
