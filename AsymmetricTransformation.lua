@@ -1,8 +1,11 @@
 -- Transform function for Paper
+-- @documentation https://rostrap.github.io/Libraries/RoStrapUI/AsymmetricTransformation/
+-- @rostrap AsymmetricTransformation
 -- @author Validark
 
 -- AsymmetricTransformation(GuiObject Button, UDim2 EndSize)
 -- @specs https://material.io/guidelines/motion/transforming-material.html#
+local AsymmetricTransformation = {}
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,7 +16,7 @@ local Standard = Bezier.new(0.4, 0.0, 0.2, 1)
 
 local Heartbeat = RunService.Heartbeat
 
-local function AsymmetricTransformation(Button, EndSize)
+function AsymmetricTransformation.new(Button, EndSize)
 	local StartX = Button.Size.X
 	local StartY = Button.Size.Y
 	local EndX = EndSize.X
