@@ -590,13 +590,12 @@ return PseudoInstance:Register("Checkbox", {
 					end
 
 					self:rawset("Checked", NewChecked)
+					self.Indeterminate = false -- These two lines happen implicitly for the self.Checked = NewChecked statement
+					self.OnChecked:Fire(NewChecked)
 				else
 					self.Checked = NewChecked
 				end
 			end
-
-			self.Indeterminate = false
-			self.OnChecked:Fire(NewChecked)
 		end;
 	};
 
