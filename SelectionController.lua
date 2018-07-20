@@ -1,4 +1,4 @@
--- SelectionController Class which Checkbox and Radio inherit from
+-- SelectionController Class from which Checkbox and Radio inherit
 -- @author Validark
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,6 +35,7 @@ return PseudoInstance:Register("SelectionController", {
 			};
 		};
 	};
+
 	Events = {"OnChecked"};
 
 	Properties = {
@@ -69,12 +70,12 @@ return PseudoInstance:Register("SelectionController", {
 		local Button = self.Button
 
 		local ClickRippler = PseudoInstance.new("Rippler", Button)
-		ClickRippler.ExpandDuration = 0.45
+		ClickRippler.RippleExpandDuration = 0.45
 		ClickRippler.Style = Enumeration.RipplerStyle.Icon
 
 		local HoverRippler = PseudoInstance.new("Rippler", Button)
-		HoverRippler.ExpandDuration = 0.1
-		HoverRippler.FadeDuration = 0.1
+		HoverRippler.RippleExpandDuration = 0.1
+		HoverRippler.RippleFadeDuration = 0.1
 		HoverRippler.Style = Enumeration.RipplerStyle.Icon
 
 		self.Janitor:Add(ClickRippler, "Destroy")
@@ -82,16 +83,16 @@ return PseudoInstance:Register("SelectionController", {
 
 		local CheckboxIsDown
 
-		Button.InputBegan:Connect(function(InputObject)
+		self.Janitor:Add(Button.InputBegan:Connect(function(InputObject)
 			if InputObject.UserInputType == MouseButton1 or InputObject.UserInputType == Touch then
 				CheckboxIsDown = true
 				ClickRippler:Down()
 			elseif InputObject.UserInputType == MouseMovement then
 				HoverRippler:Down()
 			end
-		end)
+		end), "Disconnect")
 
-		Button.InputEnded:Connect(function(InputObject)
+		self.Janitor:Add(Button.InputEnded:Connect(function(InputObject)
 			ClickRippler:Up()
 			local UserInputType = InputObject.UserInputType
 			if CheckboxIsDown and UserInputType == MouseButton1 or UserInputType == Touch then
@@ -100,7 +101,7 @@ return PseudoInstance:Register("SelectionController", {
 				CheckboxIsDown = false
 				HoverRippler:Up()
 			end
-		end)
+		end), "Disconnect")
 
 		self.Button = Button
 		self.ClickRippler = ClickRippler
@@ -109,6 +110,7 @@ return PseudoInstance:Register("SelectionController", {
 		self.Disabled = false
 		self.Theme = 0
 		self.PrimaryColor3 = DEFAULT_COLOR3
+		self.Checked = false
 		self:superinit()
 	end;
 })
