@@ -1,4 +1,4 @@
--- Shadow / Elevation Renderer PseudoInstance
+-- Shadow / Elevation Rendering PseudoInstance
 -- @author Validark
 -- @author AmaranthineCodices - Made the Shadow images and created the rendering framework
 -- @original https://github.com/AmaranthineCodices/roact-material/blob/master/src/Components/Shadow.lua
@@ -10,6 +10,8 @@ local Debug = Resources:LoadLibrary("Debug")
 local Tween = Resources:LoadLibrary("Tween")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
+
+local Deceleration = Enumeration.EasingFunction.Deceleration.Value
 
 local ShadowImage = Instance.new("ImageLabel")
 ShadowImage.Image = "rbxassetid://1316045217"
@@ -253,7 +255,7 @@ return PseudoInstance:Register("Shadow", {
 					local Object = self[Name]
 
 					for Property, EndValue in next, Data do
-						Object[Property] = EndValue
+						Tween(Object, Property, Property == "ImageTransparency" and (1 - EndValue) * self.Transparency + EndValue or EndValue, nil, 0, true)
 					end
 				end
 				self:rawset("Elevation", Elevation)
@@ -284,12 +286,30 @@ return PseudoInstance:Register("Shadow", {
 
 			return true
 		end;
+
+		Transparency = function(self, Transparency)
+			if type(Transparency) ~= "number" then return false end
+
+			for ShadowName, Data in next, ShadowData[self.Elevation.Value] do
+				Tween(self[ShadowName], "ImageTransparency", (1 - Transparency) * Data.ImageTransparency + Transparency, nil, 0, true) -- Stop any ImageTransparency tweens and change to proper Transparency
+			end
+
+			return true
+		end;
+
+		Visible = function(self, Visible)
+			for i = 1, 3 do
+				self[ShadowNames[i]].Visible = Visible
+			end
+
+			return true
+		end;
 	};
 
 	Events = {};
 
 	Methods = {
-		ChangeElevation = function(self, Elevation)
+		ChangeElevation = function(self, Elevation, TweenTime)
 			Elevation = Enumeration.ShadowElevation:Cast(Elevation)
 
 			if self.Elevation ~= Elevation then
@@ -297,7 +317,7 @@ return PseudoInstance:Register("Shadow", {
 					local Object = self[Name]
 
 					for Property, EndValue in next, Data do
-						Tween(Object, Property, EndValue, "Deceleration", SHADOW_TWEEN_TIME, true)
+						Tween(Object, Property, Property == "ImageTransparency" and (1 - EndValue) * self.Transparency + EndValue or EndValue, Deceleration, TweenTime or SHADOW_TWEEN_TIME, true)
 					end
 				end
 
@@ -317,6 +337,7 @@ return PseudoInstance:Register("Shadow", {
 			self.Janitor:LinkToInstance(Shadow, true)
 		end
 
+		self:rawset("Transparency", 0)
 		self:rawset("Elevation", Enumeration.ShadowElevation.Elevation0)
 	end;
 })
