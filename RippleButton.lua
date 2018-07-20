@@ -1,4 +1,4 @@
--- Material Design Button PseudoInstances
+-- Material Design Button PseudoInstances with Ripples
 -- @author Validark
 
 local Players = game:GetService("Players")
@@ -9,33 +9,20 @@ local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 local Debug = Resources:LoadLibrary("Debug")
 local Tween = Resources:LoadLibrary("Tween")
 local Color = Resources:LoadLibrary("Color")
-local Shadow = Resources:LoadLibrary("Shadow")
-local Rippler = Resources:LoadLibrary("Rippler")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 
 -- Elevations
 local RAISED_BASE_ELEVATION = 3
-local RAISED_ELEVATION = 6
+local RAISED_ELEVATION = 8
 
-local ValidInputEnums = {
-	[Enum.UserInputType.Touch.Value] = true;
-	[Enum.UserInputType.MouseButton1.Value] = true;
-	[Enum.UserInputType.MouseButton2.Value] = true;
-	[Enum.UserInputType.MouseButton3.Value] = true;
-}
-
-Enumeration.ButtonStyle = {"Custom", "Flat", "Outlined", "Contained"}
-
-local function GetLuminosity(PrimaryColor3)
-	return PrimaryColor3.r * 0.299 + PrimaryColor3.g * 0.587 + PrimaryColor3.b * 0.114
-end
+Enumeration.ButtonStyle = {"Flat", "Outlined", "Contained"}
 
 local StateOpacity = { -- TODO: Derive these values based on the PrimaryColor3's luminosity
 	-- Material Design specs have values which are more subtle, which I don't think look ideal
 	[Enumeration.ButtonStyle.Flat.Value] = {
-		Hover = 0.12;-- 0.08;
-		Pressed = 0.265; --0.09;
+		Hover = 0.12;
+		Pressed = 0.265;
 	};
 
 	[Enumeration.ButtonStyle.Outlined.Value] = {
@@ -45,17 +32,19 @@ local StateOpacity = { -- TODO: Derive these values based on the PrimaryColor3's
 
 	[Enumeration.ButtonStyle.Contained.Value] = {
 		Hover = 0.12; --0.075;
-		Pressed = 0.265;
+		Pressed = 0.3; -- 0.265;
 	};
 }
 
 local RaisedImages = {
+	[0] = "rbxassetid://132155326";
 	[2] = "rbxassetid://1934672242";
 	[4] = "rbxassetid://1934624205";
 	[8] = "rbxassetid://1935044829";
 }
 
 local OutlinedImages = {
+	[0] = "rbxassetid://2091129360";
 	[2] = "rbxassetid://1981015282";
 	[4] = "rbxassetid://1981015668";
 	[8] = "rbxassetid://1981285569";
@@ -108,19 +97,119 @@ local MouseMovement = Enum.UserInputType.MouseMovement
 local Invisify = {UserInputType = MouseMovement}
 
 return PseudoInstance:Register("RippleButton", {
-	Internals = {
-		"TextLabel", "Rippler", "OutlineImage", "OverlayOpacity", "Shadow", "TooltipObject", "InputBegan", "InputEnded";
+	WrappedProperties = {
+		Object = {"AnchorPoint", "Active", "Name", "Size", "Position", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp", "Parent"};
+		TextLabel = {"Font", "Text", "TextSize"};
+		Shadow = {"Elevation"};
 	};
 
-	Events = {};
+	Internals = {
+		"TextLabel", "Rippler", "OutlineImage", "OverlayOpacity", "Shadow", "TooltipObject", "InputBegan", "InputEnded", "InputChanged", "RegisteredRippleInputs";
+
+		RenderPrimaryColor3 = function(self, PrimaryColor3)
+			local Luminosity = PrimaryColor3.r * 0.299 + PrimaryColor3.g * 0.587 + PrimaryColor3.b * 0.114
+
+			if self.Style == Enumeration.ButtonStyle.Contained then
+				if self.Disabled then
+					PrimaryColor3 = Color3.fromRGB(204, 204, 204)
+				end
+
+				local TextColor3 = 0.5 < Luminosity and Color.Black or Color.White
+
+				self.Rippler.RippleColor3 = TextColor3
+				self.TextLabel.TextColor3 = TextColor3
+				self.Object.ImageColor3 = PrimaryColor3
+			else
+				if self.Disabled then
+					PrimaryColor3 = Color.Black
+				end
+				self.Rippler.RippleColor3 = PrimaryColor3
+				self.TextLabel.TextColor3 = PrimaryColor3
+				self.Object.ImageColor3 = PrimaryColor3
+			end
+		end;
+	};
+
+	Events = {
+		OnPressed = function(self)
+			local RegisteredRippleInputs = self.RegisteredRippleInputs
+
+			return function(Signal)
+				RegisteredRippleInputs[Enum.UserInputType.Touch.Value] = Signal
+				RegisteredRippleInputs[Enum.UserInputType.MouseButton1.Value] = Signal
+			end, function()
+				RegisteredRippleInputs[Enum.UserInputType.Touch.Value] = nil
+				RegisteredRippleInputs[Enum.UserInputType.MouseButton1.Value] = nil
+			end
+		end;
+
+		OnRightPressed = function(self)
+			local RegisteredRippleInputs = self.RegisteredRippleInputs
+
+			return function(Signal)
+				RegisteredRippleInputs[Enum.UserInputType.MouseButton2.Value] = Signal
+			end, function()
+				RegisteredRippleInputs[Enum.UserInputType.MouseButton2.Value] = nil
+			end
+		end;
+
+		OnMiddlePressed = function(self)
+			local RegisteredRippleInputs = self.RegisteredRippleInputs
+
+			return function(Signal)
+				RegisteredRippleInputs[Enum.UserInputType.MouseButton3.Value] = Signal
+			end, function()
+				RegisteredRippleInputs[Enum.UserInputType.MouseButton3.Value] = nil
+			end
+		end;
+	};
 
 	Properties = {
+		TextTransparency = function(self, TextTransparency)
+			if not self.Disabled then
+				self.TextLabel.TextTransparency = TextTransparency
+			elseif type(TextTransparency) ~= "number" then
+				return false
+			end
+
+			return true
+		end;
+
+		Disabled = function(self, Disabled)
+			if self.Disabled == Disabled == false then
+				if type(Disabled) ~= "boolean" then Debug.Error("bad argument #3 to Disabled: expected boolean, got %s", Disabled) end
+
+				if Disabled then
+					if self.Style == Enumeration.ButtonStyle.Contained then
+						self.Shadow.Visible = false
+					end
+
+					self.TextLabel.TextTransparency = 0.62
+
+					self.Janitor:Remove("InputBegan")
+					self.Janitor:Remove("InputEnded")
+					self.Janitor:Remove("InputChanged")
+				else
+					if self.Style == Enumeration.ButtonStyle.Contained then
+						self.Shadow.Visible = true
+					end
+
+					self.TextLabel.TextTransparency = self.TextTransparency
+
+					self.Janitor:Add(self.Object.InputBegan:Connect(self.InputBegan), "Disconnect", "InputBegan")
+					self.Janitor:Add(self.Object.InputEnded:Connect(self.InputEnded), "Disconnect", "InputEnded")
+					self.Janitor:Add(self.Object.InputChanged:Connect(self.InputChanged), "Disconnect", "InputChanged")
+				end
+
+				self:rawset("Disabled", Disabled)
+				self:RenderPrimaryColor3(self.PrimaryColor3)
+			end
+		end;
+
 		Tooltip = function(self, Tip)
 			if Tip == "" then
-				if self.TooltipObject then
-					self.TooltipObject:Destroy()
-					self.TooltipObject = nil
-				end
+				self.TooltipObject = nil
+				self.Janitor:Remove("TooltipObject")
 				return true
 			elseif type(Tip) == "string" then
 				self.TooltipObject = TooltipObject:Clone()
@@ -128,6 +217,8 @@ return PseudoInstance:Register("RippleButton", {
 				self.TooltipObject.TextLabel.Text = Tip
 				self.TooltipObject.TextLabel.ZIndex = self.ZIndex + 2
 				self.TooltipObject.Parent = self.Object
+
+				self.Janitor:Add(self.TooltipObject, "Destroy", "TooltipObject")
 				return true
 			else
 				return false
@@ -171,10 +262,8 @@ return PseudoInstance:Register("RippleButton", {
 				self.Object.ImageTransparency = 1
 				self.Object.ImageColor3 = self.PrimaryColor3
 
-				if self.Shadow then
-					self.Shadow:Destroy()
-					self.Shadow = nil
-				end
+				self.Janitor:Remove("Shadow")
+				self.Shadow = nil
 
 				self:rawset("Elevation", Enumeration.ShadowElevation.Elevation0)
 			elseif ButtonStyle == Enumeration.ButtonStyle.Contained then
@@ -183,11 +272,13 @@ return PseudoInstance:Register("RippleButton", {
 
 				self.Shadow = PseudoInstance.new("Shadow")
 				self.Shadow.Parent = self.Object
+				self.Janitor:Add(self.Shadow, "Destroy", "Shadow")
 
-				self.Elevation = 3
+				self.Elevation = RAISED_BASE_ELEVATION
+				self.Shadow.Transparency = 0
 			end
 
-			self.PrimaryColor3 = self.PrimaryColor3 -- re-render PrimaryColor3 :D
+			self:RenderPrimaryColor3(self.PrimaryColor3) -- re-render PrimaryColor3
 
 			if IsOutlined then
 				self.OutlineImage = OutlineImage:Clone()
@@ -197,27 +288,16 @@ return PseudoInstance:Register("RippleButton", {
 
 				self.OutlineImage.Image = OutlinedImages[Value]
 				self.OutlineImage.SliceCenter = Rect.new(Value, Value, 256 - Value, 256 - Value)
-			elseif self.OutlineImage then
-				self.OutlineImage:Destroy()
+				self.Janitor:Add(self.OutlineImage, "Destroy", "OutlineImage")
+			else
 				self.OutlineImage = nil
+				self.Janitor:Remove("OutlineImage")
 			end
 		end;
 
 		PrimaryColor3 = function(self, PrimaryColor3)
 			if typeof(PrimaryColor3) ~= "Color3" then Debug.Error("bad argument #3 to PrimaryColor3: expected Color3, got %s", PrimaryColor3) end
-
-			if self.Style == Enumeration.ButtonStyle.Contained then
-				local TextColor3 = 0.5 < PrimaryColor3.r * 0.299 + PrimaryColor3.g * 0.587 + PrimaryColor3.b * 0.114 and Color.Black or Color.White
-
-				self.Rippler.RippleColor3 = TextColor3
-				self.TextLabel.TextColor3 = TextColor3
-				self.Object.ImageColor3 = PrimaryColor3
-			else
-				self.Rippler.RippleColor3 = PrimaryColor3
-				self.TextLabel.TextColor3 = PrimaryColor3
-				self.Object.ImageColor3 = PrimaryColor3
-			end
-
+			self:RenderPrimaryColor3(PrimaryColor3)
 			return true
 		end;
 
@@ -254,26 +334,40 @@ return PseudoInstance:Register("RippleButton", {
 
 	Init = function(self)
 		self:rawset("Object", ImageButton:Clone())
+		self:rawset("PrimaryColor3", Color.Black)
 		self.TextLabel = self.Object.TextLabel
+
+		self.TextLabel:GetPropertyChangedSignal("TextBounds"):Connect(function()
+			self:rawset("TextBounds", self.TextLabel.TextBounds)
+		end)
 
 		self.Rippler = PseudoInstance.new("Rippler")
 		self.Rippler.RippleTransparency = 0.68
 		self.Rippler.Parent = self.Object
 
-		self.PrimaryColor3 = Color.Black
 		self.Style = Enumeration.ButtonStyle.Flat
 		self.BorderRadius = 4
 		self.Tooltip = ""
+		self.Text = ""
 		self.ZIndex = 1
+		self.TextTransparency = 0
+
+		self.Janitor:Add(self.Object, "Destroy")
+		self.Janitor:Add(self.TextLabel, "Destroy")
+		self.Janitor:Add(self.Rippler, "Destroy")
 
 		local Int = 0
 		local IsHovered = false
+		self.RegisteredRippleInputs = {}
 
 		function self.InputBegan(InputObject)
-			if ValidInputEnums[InputObject.UserInputType.Value] then
+			local Signal = self.RegisteredRippleInputs[InputObject.UserInputType.Value]
+
+			if Signal then
+				Signal.IsDown = true
 				self.Rippler:Down(InputObject.Position.X, InputObject.Position.Y)
 				if self.Style == Enumeration.ButtonStyle.Contained then
-					self.Shadow:ChangeElevation(self.Elevation + 5)
+					self.Shadow:ChangeElevation(RAISED_ELEVATION)
 				end
 			elseif InputObject.UserInputType == MouseMovement then
 				IsHovered = true
@@ -304,15 +398,25 @@ return PseudoInstance:Register("RippleButton", {
 		end
 
 		function self.InputEnded(InputObject)
+			local UserInputType = InputObject.UserInputType
+
 			self.Rippler:Up()
+
+			local Signal = self.RegisteredRippleInputs[UserInputType.Value]
+
+			if Signal and Signal.IsDown then
+				Signal.IsDown = false
+				Signal:Fire()
+			end
 
 			if self.Style == Enumeration.ButtonStyle.Contained then
 				self.Shadow:ChangeElevation(self.Elevation)
 			end
 
-			local UserInputType = InputObject.UserInputType
-
 			if UserInputType == MouseMovement then
+				for _, EventSignal in next, self.RegisteredRippleInputs do
+					EventSignal.IsDown = false
+				end
 				if self.Style == Enumeration.ButtonStyle.Contained then
 					Tween(self.Object, "ImageColor3", self.PrimaryColor3, Enumeration.EasingFunction.Deceleration, 0.1, true)
 				else
@@ -332,19 +436,15 @@ return PseudoInstance:Register("RippleButton", {
 			end
 		end
 
-		self.Object.InputBegan:Connect(self.InputBegan)
-		self.Object.InputEnded:Connect(self.InputEnded)
-
-		self.Object.InputChanged:Connect(function(InputObject)
+		function self.InputChanged(InputObject)
 			if InputObject.UserInputType == MouseMovement and not IsHovered then
 				IsHovered = true
 				self.InputBegan(InputObject)
 			end
-		end)
+		end
+
+		self.Disabled = false
 
 		self:superinit()
 	end;
 })
-	:WrapProperties("Object", "AnchorPoint", "Active", "Name", "Parent", "Size", "Position", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp")
-	:WrapProperties("TextLabel", "Font", "Text", "TextSize")
-	:WrapProperties("Shadow", "Elevation")

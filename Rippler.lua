@@ -1,4 +1,4 @@
--- Rippler PseudoInstance with rounded edge support
+-- PseudoInstance to spawn Material Design Ripples inside its Parent (with rounded edge support!)
 -- @author Validark
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -40,8 +40,6 @@ local Deceleration = Enumeration.EasingFunction.Deceleration.Value
 Enumeration.RipplerStyle = {"Full", "Icon", "Round"}
 
 local CornerData = {
-	[0] = {};
-
 	[2] = {
 		0.380, 0.918,
 		0.918, 1.000,
@@ -67,7 +65,9 @@ local CornerData = {
 }
 
 do
-	local t = {}
+	local t = {
+		Radius0 = 0;
+	}
 
 	for BorderRadius, Data in next, CornerData do
 		t["Radius" .. BorderRadius] = BorderRadius
@@ -147,7 +147,7 @@ return PseudoInstance:Register("Rippler", {
 
 		SetCurrentRipple = function(self, Ripple)
 			if self.CurrentRipple then
-				Tween(self.CurrentRipple, "ImageTransparency", 1, Deceleration, self.FadeDuration, false, true)
+				Tween(self.CurrentRipple, "ImageTransparency", 1, Deceleration, self.RippleFadeDuration, false, true)
 			end
 
 			self.CurrentRipple = Ripple
@@ -168,9 +168,6 @@ return PseudoInstance:Register("Rippler", {
 
 			if RippleFrames then
 				DestroyRoundRipple(RippleFrames)
-			else
-				RippleFrames = {}
-				self.RippleFrames = RippleFrames
 			end
 
 			if BorderRadius == 0 then
@@ -178,6 +175,11 @@ return PseudoInstance:Register("Rippler", {
 			else
 				self.Style = Enumeration.RipplerStyle.Round
 				local Data = CornerData[BorderRadius]
+
+				if not RippleFrames then
+					RippleFrames = {}
+					self.RippleFrames = RippleFrames
+				end
 
 				local MiddleSquarePoint
 				local Container = self.Container
@@ -233,25 +235,28 @@ return PseudoInstance:Register("Rippler", {
 			end
 		end;
 
-		FadeDuration = Enumeration.ValueType.Number;
+		RippleFadeDuration = Enumeration.ValueType.Number;
 		MaxRippleDiameter = Enumeration.ValueType.Number;
-		ExpandDuration = Enumeration.ValueType.Number;
-		HoldDuration = Enumeration.ValueType.Number;
+		RippleExpandDuration = Enumeration.ValueType.Number;
 
 		RippleColor3 = function(self, Value)
 			if typeof(Value) ~= "Color3" then Debug.Error("bad argument #3 to RippleColor3: expected Color3, got %s", Value) end
+
 			if self.CurrentRipple then
 				self.CurrentRipple.ImageColor3 = Value
 			end
-			self:rawset("RippleColor3", Value)
+
+			return true
 		end;
 
 		RippleTransparency = function(self, Value)
 			if type(Value) ~= "number" then Debug.Error("bad argument #3 to RippleTransparency: expected number, got %s", Value) end
+
 			if self.CurrentRipple then
 				self.CurrentRipple.ImageTransparency = Value
 			end
-			self:rawset("RippleTransparency", Value)
+
+			return true
 		end;
 
 		Container = function(self, Container)
@@ -280,9 +285,8 @@ return PseudoInstance:Register("Rippler", {
 					self.Janitor:Add(Parent:GetPropertyChangedSignal("ZIndex"):Connect(ZIndexChanged), "Disconnect", "ZIndexChanged")
 					ZIndexChanged()
 					self.Container.Parent = Parent
-					return true
 				else
-					Debug.Error("bad argument 3 to Parent, expected GuiObject, got %s", Parent)
+					Debug.Error("bad argument #3 to Parent, expected GuiObject, got %s", Parent)
 				end
 			end
 
@@ -295,17 +299,20 @@ return PseudoInstance:Register("Rippler", {
 			local Container = self.Container
 			local Diameter
 
+			local ContainerAbsoluteSizeX = Container.AbsoluteSize.X
+			local ContainerAbsoluteSizeY = Container.AbsoluteSize.Y
+
 			-- Get near corners
-			X = (X or (0.5 * Container.AbsoluteSize.X + Container.AbsolutePosition.X)) - Container.AbsolutePosition.X
-			Y = (Y or (0.5 * Container.AbsoluteSize.Y + Container.AbsolutePosition.Y)) - Container.AbsolutePosition.Y
+			X = (X or (0.5 * ContainerAbsoluteSizeX + Container.AbsolutePosition.X)) - Container.AbsolutePosition.X
+			Y = (Y or (0.5 * ContainerAbsoluteSizeY + Container.AbsolutePosition.Y)) - Container.AbsolutePosition.Y
 
 			if self.Style == Enumeration.RipplerStyle.Icon then
 				Diameter = 2 * Container.AbsoluteSize.Y
 				self.Container.ClipsDescendants = false
 			else
 				-- Get far corners
-				local V = X - Container.AbsoluteSize.X
-				local W = Y - Container.AbsoluteSize.Y
+				local V = X - ContainerAbsoluteSizeX
+				local W = Y - ContainerAbsoluteSizeY
 
 				-- Calculate distance between mouse and corners
 				local a = (X*X + Y*Y) ^ 0.5
@@ -351,17 +358,17 @@ return PseudoInstance:Register("Rippler", {
 
 			self:SetCurrentRipple(Ripple)
 
-			return Tween(Ripple, "Size", UDim2.new(0, Diameter, 0, Diameter), Deceleration, self.ExpandDuration)
+			return Tween(Ripple, "Size", UDim2.new(0, Diameter, 0, Diameter), Deceleration, self.RippleExpandDuration)
 		end;
 
 		Up = function(self)
 			self:SetCurrentRipple(false)
 		end;
 
-		Ripple = function(self, X, Y)
+		Ripple = function(self, X, Y, Duration)
 			self:Down(X, Y)
 
-			delay(self.HoldDuration, function()
+			delay(Duration or 0.15, function()
 				self:SetCurrentRipple(false)
 			end)
 		end;
@@ -374,9 +381,8 @@ return PseudoInstance:Register("Rippler", {
 		self.RippleTransparency = 0.84
 		self.RippleColor3 = Color.White
 		self.MaxRippleDiameter = math.huge
-		self.HoldDuration = 0.15
-		self.ExpandDuration = 0.5
-		self.FadeDuration = 1
+		self.RippleExpandDuration = 0.5
+		self.RippleFadeDuration = 1
 		self:superinit()
 	end;
 })
