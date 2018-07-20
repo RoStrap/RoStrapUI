@@ -490,10 +490,14 @@ return PseudoInstance:Register("Checkbox", {
 		end;
 	};
 
+	WrappedProperties = {
+		Button = {"AnchorPoint", "Name", "Parent", "Position", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp"};
+	};
+
 	Properties = {
 		Indeterminate = function(self, Indeterminate)
 			if type(Indeterminate) ~= "boolean" then Debug.Error("Expected Indeterminate to be a boolean, got %s", Indeterminate) end
-			self:rawset("Indeterminate", Indeterminate)
+
 			if Indeterminate then
 				if self.Checked then
 					self:rawset("Checked", false)
@@ -502,6 +506,8 @@ return PseudoInstance:Register("Checkbox", {
 				FillCenter(self, 1)
 				self.Button.Image = INDETERMINATE_CHECKBOX_IMAGE
 			end
+
+			return true
 		end;
 
 		Checked = function(self, Value)
@@ -564,31 +570,33 @@ return PseudoInstance:Register("Checkbox", {
 				self.OpenTween2:Stop()
 			end
 
-			self.GridFrame.Visible = true
+			if NewChecked ~= self.Checked then
+				self.GridFrame.Visible = true
 
-			if Button.Size == CHECKBOX_SIZE then
-				if NewChecked then
-					self:SetColorAndTransparency(self.PrimaryColor3, 0)
-					Button.ImageTransparency = 1
-					self.OpenTween = self.Indeterminate and Tween.new(DRAW_DURATION, CHECKMARK_DRAW_BEZIER, DrawCheckmark, self) or Tween.new(FILL_DURATION, CENTER_FILL_BEZIER, FillCenter, self)
-					self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, ShrinkFrame, self)
+				if Button.Size == CHECKBOX_SIZE then
+					if NewChecked then
+						self:SetColorAndTransparency(self.PrimaryColor3, 0)
+						Button.ImageTransparency = 1
+						self.OpenTween = self.Indeterminate and Tween.new(DRAW_DURATION, CHECKMARK_DRAW_BEZIER, DrawCheckmark, self) or Tween.new(FILL_DURATION, CENTER_FILL_BEZIER, FillCenter, self)
+						self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, ShrinkFrame, self)
+					else
+						local Theme = CHECKBOX_THEMES[self.Theme.Value]
+
+						self:SetColorAndTransparency(Theme.ImageColor3, Theme.ImageTransparency)
+						Button.ImageTransparency = 1
+						self.XOffset, self.YOffset = 0, 0
+						self.OpenTween = Tween.new(DRAW_DURATION, CHECKMARK_ERASE_BEZIER, EraseCheckmark, self)
+						self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, ShrinkFrame, self)
+					end
+
+					self:rawset("Checked", NewChecked)
 				else
-					local Theme = CHECKBOX_THEMES[self.Theme.Value]
-
-					self:SetColorAndTransparency(Theme.ImageColor3, Theme.ImageTransparency)
-					Button.ImageTransparency = 1
-					self.XOffset, self.YOffset = 0, 0
-					self.OpenTween = Tween.new(DRAW_DURATION, CHECKMARK_ERASE_BEZIER, EraseCheckmark, self)
-					self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, ShrinkFrame, self)
+					self.Checked = NewChecked
 				end
-
-				self:rawset("Checked", NewChecked)
-				self.Indeterminate = false
-				self.OnChecked:Fire(NewChecked)
-			else
-				self.Checked = NewChecked
-				self.Indeterminate = false
 			end
+
+			self.Indeterminate = false
+			self.OnChecked:Fire(NewChecked)
 		end;
 	};
 
@@ -637,4 +645,3 @@ return PseudoInstance:Register("Checkbox", {
 		self.ZIndex = 1
 	end;
 }, SelectionController)
-	:WrapProperties("Button", "AnchorPoint", "Name", "Parent", "Position", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp")
