@@ -1,6 +1,8 @@
 -- 2-step Choice Dialog ReplicatedPseudoInstance
+-- @author Validark
 
 local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
@@ -24,7 +26,7 @@ Screen.DisplayOrder = 2^31 - 2
 local DialogBlur = Instance.new("BlurEffect")
 DialogBlur.Size = 0
 DialogBlur.Name = "DialogBlur"
-DialogBlur.Parent = game:GetService("Lighting")
+DialogBlur.Parent = Lighting
 
 local BUTTON_WIDTH_PADDING = 8
 local DISMISS_TIME = 75 / 1000 * 2
@@ -92,13 +94,17 @@ local Frame do
 end
 
 local function OnDismiss(self)
-	self.OnConfirmed:Fire(LocalPlayer, false)
-	self:Dismiss()
+	if not self.Dismissed then
+		self.OnConfirmed:Fire(LocalPlayer, false)
+		self:Dismiss()
+	end
 end
 
 local function OnConfirm(self)
-	self.OnConfirmed:Fire(LocalPlayer, self.RadioGroup:GetSelection())
-	self:Dismiss()
+	if not self.Dismissed then
+		self.OnConfirmed:Fire(LocalPlayer, self.RadioGroup:GetSelection())
+		self:Dismiss()
+	end
 end
 
 local function ConfirmEnable(ConfirmButton)
@@ -118,16 +124,19 @@ end
 return PseudoInstance:Register("ChoiceDialog", {
 	Storage = {};
 
-	Internals = {"Object", "ConfirmButton", "DismissButton", "RadioGroup", "AssociatedRadioContainers", "Header", "UIScale", "Background"};
+	Internals = {"Object", "ConfirmButton", "DismissButton", "RadioGroup", "AssociatedRadioContainers", "Header", "UIScale", "Background", "Dismissed"};
 
 	Events = {"OnConfirmed"};
 
 	Methods = {
 		Dismiss = function(self)
 			-- Destroys Dialog when done
-			self.UIScale.Parent = Screen
-			Tween(self.UIScale, "Scale", 0, Enumeration.EasingFunction.InBack, DISMISS_TIME, true, self.Janitor)
-			Tween(DialogBlur, "Size", 0, Enumeration.EasingFunction.InBack, ENTER_TIME, true)
+			if not self.Dismissed then
+				self.Dismissed = true
+				Tween(self.UIScale, "Scale", 0, Enumeration.EasingFunction.InBack, DISMISS_TIME, true, self.Janitor)
+				self.UIScale.Parent = Screen
+				Tween(DialogBlur, "Size", 0, Enumeration.EasingFunction.InBack, ENTER_TIME, true)
+			end
 		end;
 	};
 
@@ -217,7 +226,7 @@ return PseudoInstance:Register("ChoiceDialog", {
 		end;
 
 		Parent = function(self, Parent)
-			if Parent then
+			if Parent and PlayerGui then
 				Screen.Parent = PlayerGui
 
 				self.UIScale.Parent = Screen
