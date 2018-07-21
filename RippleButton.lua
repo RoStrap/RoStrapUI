@@ -12,6 +12,9 @@ local Color = Resources:LoadLibrary("Color")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 
+local Shadow = Resources:LoadLibrary("Shadow")
+local Rippler = Resources:LoadLibrary("Rippler")
+
 -- Elevations
 local RAISED_BASE_ELEVATION = 3
 local RAISED_ELEVATION = 8

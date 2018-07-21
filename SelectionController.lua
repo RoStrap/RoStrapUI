@@ -9,6 +9,8 @@ local Debug = Resources:LoadLibrary("Debug")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 
+local Rippler = Resources:LoadLibrary("Rippler")
+
 Enumeration.MaterialTheme = {"Light", "Dark"}
 
 local Touch = Enum.UserInputType.Touch
