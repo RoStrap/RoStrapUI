@@ -12,8 +12,10 @@ local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 local ReplicatedPseudoInstance = Resources:LoadLibrary("ReplicatedPseudoInstance")
 
-Resources:LoadLibrary("Radio")
-Resources:LoadLibrary("RippleButton")
+local Radio = Resources:LoadLibrary("Radio")
+local Shadow = Resources:LoadLibrary("Shadow")
+local RadioGroup = Resources:LoadLibrary("RadioGroup")
+local RippleButton = Resources:LoadLibrary("RippleButton")
 
 local Screen = Instance.new("ScreenGui")
 Screen.Name = "RoStrapPriorityUIs"
