@@ -103,7 +103,7 @@ local Invisify = {UserInputType = MouseMovement}
 return PseudoInstance:Register("RippleButton", {
 	WrappedProperties = {
 		Object = {"AnchorPoint", "Active", "Name", "Size", "Position", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp", "Parent"};
-		TextLabel = {"Font", "Text", "TextSize"};
+		TextLabel = {"Font", "Text", "TextSize", "TextXAlignment", "TextYAlignment"};
 		Shadow = {"Elevation"};
 	};
 
