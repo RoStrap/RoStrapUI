@@ -1,4 +1,4 @@
--- Radio Button PseudoInstance
+-- Material Design Radio Button PseudoInstance
 -- @author Validark
 
 local ContentProvider = game:GetService("ContentProvider")
