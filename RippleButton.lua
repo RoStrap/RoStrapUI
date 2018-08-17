@@ -9,6 +9,7 @@ local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 local Debug = Resources:LoadLibrary("Debug")
 local Tween = Resources:LoadLibrary("Tween")
 local Color = Resources:LoadLibrary("Color")
+local Typer = Resources:LoadLibrary("Typer")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 
@@ -168,19 +169,16 @@ return PseudoInstance:Register("RippleButton", {
 	};
 
 	Properties = {
-		TextTransparency = function(self, TextTransparency)
+		TextTransparency = Typer.AssignSignature(2, Typer.Number, function(self, TextTransparency)
 			if not self.Disabled then
 				self.TextLabel.TextTransparency = TextTransparency
-			elseif type(TextTransparency) ~= "number" then
-				return false
 			end
 
-			return true
-		end;
+			self:rawset("TextTransparency", TextTransparency)
+		end);
 
-		Disabled = function(self, Disabled)
-			if self.Disabled == Disabled == false then
-				if type(Disabled) ~= "boolean" then Debug.Error("bad argument #3 to Disabled: expected boolean, got %s", Disabled) end
+		Disabled = Typer.AssignSignature(2, Typer.Boolean, function(self, Disabled)
+			if self.Disabled ~= Disabled  then
 
 				if Disabled then
 					if self.Style == Enumeration.ButtonStyle.Contained then
@@ -207,14 +205,13 @@ return PseudoInstance:Register("RippleButton", {
 				self:rawset("Disabled", Disabled)
 				self:RenderPrimaryColor3(self.PrimaryColor3)
 			end
-		end;
+		end);
 
-		Tooltip = function(self, Tip)
+		Tooltip = Typer.AssignSignature(2, Typer.String, function(self, Tip)
 			if Tip == "" then
 				self.TooltipObject = nil
 				self.Janitor:Remove("TooltipObject")
-				return true
-			elseif type(Tip) == "string" then
+			else
 				self.TooltipObject = TooltipObject:Clone()
 				self.TooltipObject.ZIndex = self.ZIndex + 1
 				self.TooltipObject.TextLabel.Text = Tip
@@ -222,15 +219,12 @@ return PseudoInstance:Register("RippleButton", {
 				self.TooltipObject.Parent = self.Object
 
 				self.Janitor:Add(self.TooltipObject, "Destroy", "TooltipObject")
-				return true
-			else
-				return false
 			end
-		end;
 
-		BorderRadius = function(self, BorderRadius)
-			BorderRadius = Enumeration.BorderRadius:Cast(BorderRadius)
+			self:rawset("Tooltip", Tip)
+		end);
 
+		BorderRadius = Typer.AssignSignature(2, Typer.EnumerationOfTypeBorderRadius, function(self, BorderRadius)
 			local Value = BorderRadius.Value
 			local SliceCenter = Rect.new(Value, Value, 256 - Value, 256 - Value)
 
@@ -244,15 +238,10 @@ return PseudoInstance:Register("RippleButton", {
 			end
 
 			self:rawset("BorderRadius", BorderRadius)
-		end;
+		end);
 
-		Style = function(self, ButtonStyle)
-			if ButtonStyle == "Raised" then -- Raised is a permissable alias for Contained
-				ButtonStyle = Enumeration.ButtonStyle.Contained
-			else
-				ButtonStyle = Enumeration.ButtonStyle:Cast(ButtonStyle)
-			end
-
+		Style = Typer.AssignSignature(2, Typer.EnumerationOfTypeButtonStyle, function(self, ButtonStyle)
+			ButtonStyle = Debug.Assert(Enumeration.ButtonStyle:Cast(ButtonStyle))
 			self:rawset("Style", ButtonStyle)
 
 			local StateData = StateOpacity[ButtonStyle.Value]
@@ -296,15 +285,14 @@ return PseudoInstance:Register("RippleButton", {
 				self.OutlineImage = nil
 				self.Janitor:Remove("OutlineImage")
 			end
-		end;
+		end);
 
-		PrimaryColor3 = function(self, PrimaryColor3)
-			if typeof(PrimaryColor3) ~= "Color3" then Debug.Error("bad argument #3 to PrimaryColor3: expected Color3, got %s", PrimaryColor3) end
+		PrimaryColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, PrimaryColor3)
 			self:RenderPrimaryColor3(PrimaryColor3)
-			return true
-		end;
+			self:rawset("PrimaryColor3", PrimaryColor3)
+		end);
 
-		Visible = function(self, Visible)
+		Visible = Typer.AssignSignature(2, Typer.Boolean, function(self, Visible)
 			self.Object.Visible = Visible
 
 			if Visible then
@@ -313,10 +301,10 @@ return PseudoInstance:Register("RippleButton", {
 				self.InputEnded(Invisify)
 			end
 
-			return true
-		end;
+			self:rawset("Visible", Visible)
+		end);
 
-		ZIndex = function(self, ZIndex)
+		ZIndex = Typer.AssignSignature(2, Typer.Number, function(self, ZIndex)
 			self.Object.ZIndex = ZIndex + 1
 			self.TextLabel.ZIndex = ZIndex + 3
 
@@ -329,8 +317,8 @@ return PseudoInstance:Register("RippleButton", {
 				self.OutlineImage.ZIndex = ZIndex + 2
 			end
 
-			return true
-		end;
+			self:rawset("ZIndex", ZIndex)
+		end);
 	};
 
 	Methods = {};
