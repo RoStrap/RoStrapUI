@@ -6,6 +6,7 @@ local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 
 local Color = Resources:LoadLibrary("Color")
 local Debug = Resources:LoadLibrary("Debug")
+local Typer = Resources:LoadLibrary("Typer")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 
@@ -41,27 +42,27 @@ return PseudoInstance:Register("SelectionController", {
 	Events = {"OnChecked"};
 
 	Properties = {
-		Checked = Enumeration.ValueType.Boolean;
-		Disabled = Enumeration.ValueType.Boolean;
+		Checked = Typer.Boolean;
+		Disabled = Typer.Boolean;
 
-		PrimaryColor3 = function(self, Value)
+		PrimaryColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, Value)
 			if typeof(Value) ~= "Color3" then Debug.Error("PrimaryColor3 must be a Color3 value") end
+
 			if (self.Checked or self.Indeterminate) and self.PrimaryColor3 ~= Value then
 				self:SetColorAndTransparency(Value, 0)
 			end
-			return true
-		end;
 
-		Theme = function(self, Value)
-			Value = Enumeration.MaterialTheme:Cast(Value)
+			self:rawset("PrimaryColor3", Value)
+		end);
 
+		Theme = Typer.AssignSignature(2, Typer.EnumerationOfTypeMaterialTheme, function(self, Theme)
 			if not self.Checked then
-				local Theme = self.Themes[Value.Value]
-				self:SetColorAndTransparency(Theme.ImageColor3, Theme.ImageTransparency)
+				local Data = self.Themes[Theme.Value]
+				self:SetColorAndTransparency(Data.ImageColor3, Data.ImageTransparency)
 			end
 
-			self:rawset("Theme", Value)
-		end;
+			self:rawset("Theme", Theme)
+		end);
 	};
 
 	Methods = {
