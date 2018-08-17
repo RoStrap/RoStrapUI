@@ -8,6 +8,7 @@ local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 local Debug = Resources:LoadLibrary("Debug")
 local Tween = Resources:LoadLibrary("Tween")
 local Color = Resources:LoadLibrary("Color")
+local Typer = Resources:LoadLibrary("Typer")
 local Janitor = Resources:LoadLibrary("Janitor")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
@@ -33,7 +34,9 @@ Circle.Size = RippleStartSize
 Circle.Image = "rbxassetid://517259585"
 Circle.Name = "Ripple"
 
-ContentProvider:PreloadAsync{Circle.Image}
+spawn(function()
+	ContentProvider:PreloadAsync{Circle.Image}
+end)
 
 local Deceleration = Enumeration.EasingFunction.Deceleration.Value
 
@@ -157,10 +160,11 @@ return PseudoInstance:Register("Rippler", {
 	Events = {};
 
 	Properties = {
-		Style = Enumeration.RipplerStyle;
+		Style = Typer.AssignSignature(2, Typer.EnumerationOfTypeRipplerStyle, function(self, Style)
+			self:rawset("Style", Style)
+		end);
 
-		BorderRadius = function(self, Value)
-			Value = Enumeration.BorderRadius:Cast(Value)
+		BorderRadius = Typer.AssignSignature(2, Typer.EnumerationOfTypeBorderRadius, function(self, Value)
 			self:rawset("BorderRadius", Value)
 
 			local BorderRadius = Value.Value
@@ -233,43 +237,38 @@ return PseudoInstance:Register("Rippler", {
 					end
 				end
 			end
-		end;
+		end);
 
-		RippleFadeDuration = Enumeration.ValueType.Number;
-		MaxRippleDiameter = Enumeration.ValueType.Number;
-		RippleExpandDuration = Enumeration.ValueType.Number;
+		RippleFadeDuration = Typer.Number;
+		MaxRippleDiameter = Typer.Number;
+		RippleExpandDuration = Typer.Number;
 
-		RippleColor3 = function(self, Value)
-			if typeof(Value) ~= "Color3" then Debug.Error("bad argument #3 to RippleColor3: expected Color3, got %s", Value) end
-
+		RippleColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, RippleColor3)
 			if self.CurrentRipple then
-				self.CurrentRipple.ImageColor3 = Value
+				self.CurrentRipple.ImageColor3 = RippleColor3
 			end
 
-			return true
-		end;
+			self:rawset("RippleColor3", RippleColor3)
+		end);
 
-		RippleTransparency = function(self, Value)
-			if type(Value) ~= "number" then Debug.Error("bad argument #3 to RippleTransparency: expected number, got %s", Value) end
-
+		RippleTransparency = Typer.AssignSignature(2, Typer.Number, function(self, RippleTransparency)
 			if self.CurrentRipple then
-				self.CurrentRipple.ImageTransparency = Value
+				self.CurrentRipple.ImageTransparency = RippleTransparency
 			end
 
-			return true
-		end;
+			self:rawset("RippleTransparency", RippleTransparency)
+		end);
 
-		Container = function(self, Container)
-			if typeof(Container) ~= "Instance" or not Container:IsA("GuiObject") then Debug.Error("bad argument 3 to Container: expected GuiObject, got %s", Container) end
+		Container = Typer.AssignSignature(2, Typer.InstanceWhichIsAGuiObject, function(self, Container)
 			if self.BorderRadius.Value ~= 0 then Debug.Error("Can only set container when BorderRadius is 0") end
 
 			self.Janitor:LinkToInstance(Container)
 			self.Janitor:Add(Container, "Destroy", "Container")
 
-			return true
-		end;
+			self:rawset("Container", Container)
+		end);
 
-		Parent = function(self, Parent)
+		Parent = function(self, Parent) -- Manually check this one
 			if Parent == nil then
 				self.Janitor:Remove("ZIndexChanged")
 				self.Container.Parent = nil
@@ -286,16 +285,16 @@ return PseudoInstance:Register("Rippler", {
 					ZIndexChanged()
 					self.Container.Parent = Parent
 				else
-					Debug.Error("bad argument #3 to Parent, expected GuiObject, got %s", Parent)
+					Debug.Error("bad argument #2 to Parent, expected GuiObject, got %s", Parent)
 				end
 			end
 
-			return true
+			self:rawset("Parent", Parent)
 		end;
 	};
 
 	Methods = {
-		Down = function(self, X, Y)
+		Down = Typer.AssignSignature(2, Typer.OptionalNumber, Typer.OptionalNumber, function(self, X, Y)
 			local Container = self.Container
 			local Diameter
 
@@ -359,19 +358,19 @@ return PseudoInstance:Register("Rippler", {
 			self:SetCurrentRipple(Ripple)
 
 			return Tween(Ripple, "Size", UDim2.new(0, Diameter, 0, Diameter), Deceleration, self.RippleExpandDuration)
-		end;
+		end);
 
 		Up = function(self)
 			self:SetCurrentRipple(false)
 		end;
 
-		Ripple = function(self, X, Y, Duration)
+		Ripple = Typer.AssignSignature(2, Typer.OptionalNumber, Typer.OptionalNumber, Typer.OptionalNumber, function(self, X, Y, Duration)
 			self:Down(X, Y)
 
 			delay(Duration or 0.15, function()
 				self:SetCurrentRipple(false)
 			end)
-		end;
+		end);
 	};
 
 	Init = function(self, Container)

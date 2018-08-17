@@ -8,6 +8,7 @@ local SHADOW_TWEEN_TIME = 0.175 -- 0.275
 local Resources = require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"))
 local Debug = Resources:LoadLibrary("Debug")
 local Tween = Resources:LoadLibrary("Tween")
+local Typer = Resources:LoadLibrary("Typer")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 
@@ -247,83 +248,72 @@ local ShadowNames = {"Ambient", "Penumbra", "Umbra"}
 
 return PseudoInstance:Register("Shadow", {
 	Properties = {
-		Elevation = function(self, Elevation)
-			Elevation = Enumeration.ShadowElevation:Cast(Elevation)
+		Elevation = Typer.AssignSignature(2, Typer.EnumerationOfTypeShadowElevation, function(self, Elevation)
+			if self.Elevation == Elevation then return end
 
-			if self.Elevation ~= Elevation then
-				for Name, Data in next, ShadowData[Elevation.Value] do
-					local Object = self[Name]
+			for Name, Data in next, ShadowData[Elevation.Value] do
+				local Object = self[Name]
 
-					for Property, EndValue in next, Data do
-						Tween(Object, Property, Property == "ImageTransparency" and (1 - EndValue) * self.Transparency + EndValue or EndValue, nil, 0, true)
-					end
+				for Property, EndValue in next, Data do
+					Tween(Object, Property, Property == "ImageTransparency" and (1 - EndValue) * self.Transparency + EndValue or EndValue, nil, 0, true)
 				end
-				self:rawset("Elevation", Elevation)
 			end
-		end;
 
-		Parent = function(self, Parent)
-			local IsGuiObject = typeof(Parent) == "Instance" and Parent:IsA("GuiObject")
+			self:rawset("Elevation", Elevation)
+		end);
 
-			if IsGuiObject then
-				local function ZIndexChanged()
-					local ParentZIndex = Parent.ZIndex
-
-					for i = 1, 3 do
-						self[ShadowNames[i]].ZIndex = ParentZIndex - 1
-					end
-				end
-
-				self.Janitor:Add(Parent:GetPropertyChangedSignal("ZIndex"):Connect(ZIndexChanged), "Disconnect", "ZIndexChanged")
-				ZIndexChanged()
+		Parent = Typer.AssignSignature(2, Typer.InstanceWhichIsAGuiObject, function(self, Parent)
+			local function ZIndexChanged()
+				local ParentZIndex = Parent.ZIndex
 
 				for i = 1, 3 do
-					self[ShadowNames[i]].Parent = Parent
+					self[ShadowNames[i]].ZIndex = ParentZIndex - 1
 				end
-			elseif Parent ~= nil then
-				Debug.Error("bad argument 3 to Parent, expected GuiObject, got %s", Parent)
 			end
 
-			return true
-		end;
+			self.Janitor:Add(Parent:GetPropertyChangedSignal("ZIndex"):Connect(ZIndexChanged), "Disconnect", "ZIndexChanged")
+			ZIndexChanged()
 
-		Transparency = function(self, Transparency)
-			if type(Transparency) ~= "number" then return false end
+			for i = 1, 3 do
+				self[ShadowNames[i]].Parent = Parent
+			end
 
+			self:rawset("Parent", Parent)
+		end);
+
+		Transparency = Typer.AssignSignature(2, Typer.Number, function(self, Transparency)
 			for ShadowName, Data in next, ShadowData[self.Elevation.Value] do
 				Tween(self[ShadowName], "ImageTransparency", (1 - Transparency) * Data.ImageTransparency + Transparency, nil, 0, true) -- Stop any ImageTransparency tweens and change to proper Transparency
 			end
 
-			return true
-		end;
+			self:rawset("Transparency", Transparency)
+		end);
 
-		Visible = function(self, Visible)
+		Visible = Typer.AssignSignature(2, Typer.Boolean, function(self, Visible)
 			for i = 1, 3 do
 				self[ShadowNames[i]].Visible = Visible
 			end
 
-			return true
-		end;
+			self:rawset("Visible", Visible)
+		end);
 	};
 
 	Events = {};
 
 	Methods = {
-		ChangeElevation = function(self, Elevation, TweenTime)
-			Elevation = Enumeration.ShadowElevation:Cast(Elevation)
+		ChangeElevation = Typer.AssignSignature(2, Typer.EnumerationOfTypeShadowElevation, Typer.OptionalNumber, function(self, Elevation, TweenTime)
+			if self.Elevation == Elevation then return end
 
-			if self.Elevation ~= Elevation then
-				for Name, Data in next, ShadowData[Elevation.Value] do
-					local Object = self[Name]
+			for Name, Data in next, ShadowData[Elevation.Value] do
+				local Object = self[Name]
 
-					for Property, EndValue in next, Data do
-						Tween(Object, Property, Property == "ImageTransparency" and (1 - EndValue) * self.Transparency + EndValue or EndValue, Deceleration, TweenTime or SHADOW_TWEEN_TIME, true)
-					end
+				for Property, EndValue in next, Data do
+					Tween(Object, Property, Property == "ImageTransparency" and (1 - EndValue) * self.Transparency + EndValue or EndValue, Deceleration, TweenTime or SHADOW_TWEEN_TIME, true)
 				end
-
-				self:rawset("Elevation", Elevation)
 			end
-		end;
+
+			self:rawset("Elevation", Elevation)
+		end);
 	};
 
 	Init = function(self)

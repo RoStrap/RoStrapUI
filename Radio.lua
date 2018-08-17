@@ -1,4 +1,4 @@
--- Radio Button PseudoInstance
+-- Material Design Radio Button PseudoInstance
 -- @author Validark
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -7,6 +7,7 @@ local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 
 local Color = Resources:LoadLibrary("Color")
 local Tween = Resources:LoadLibrary("Tween")
+local Typer = Resources:LoadLibrary("Typer")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 local SelectionController = Resources:LoadLibrary("SelectionController")
@@ -39,7 +40,9 @@ Circle.Parent = RadioButton
 local RippleCheckedSize = UDim2.new(10 / 24, 0, 10 / 24, 0)
 local RippleUncheckedSize = UDim2.new(20 / 24, 0, 20 / 24, 0)
 
-ContentProvider:PreloadAsync{CHECKED_IMAGE, UNCHECKED_IMAGE}
+spawn(function()
+	ContentProvider:PreloadAsync{CHECKED_IMAGE, UNCHECKED_IMAGE}
+end)
 
 local Deceleration = Enumeration.EasingFunction.Deceleration.Value
 
@@ -73,37 +76,32 @@ return PseudoInstance:Register("Radio", {
 	};
 
 	Properties = {
-		Checked = function(self, Checked)
-			if type(Checked) == "boolean" then
-				if Checked then
-					self:SetColorAndTransparency(self.PrimaryColor3, 0)
-					self.Button.Image = CHECKED_IMAGE
-				else
-					local MyTheme = self.Themes[self.Theme.Value]
-
-					self:SetColorAndTransparency(MyTheme.ImageColor3, MyTheme.ImageTransparency)
-					self.Button.Image = UNCHECKED_IMAGE
-				end
-
-				self:rawset("Checked", Checked)
-				self.OnChecked:Fire(Checked)
+		Checked = Typer.AssignSignature(2, Typer.Boolean, function(self, Checked)
+			if Checked then
+				self:SetColorAndTransparency(self.PrimaryColor3, 0)
+				self.Button.Image = CHECKED_IMAGE
 			else
-				return false
-			end
-		end;
+				local MyTheme = self.Themes[self.Theme.Value]
 
-		ZIndex = function(self, ZIndex)
+				self:SetColorAndTransparency(MyTheme.ImageColor3, MyTheme.ImageTransparency)
+				self.Button.Image = UNCHECKED_IMAGE
+			end
+
+			self:rawset("Checked", Checked)
+			self.OnChecked:Fire(Checked)
+		end);
+
+		ZIndex = Typer.AssignSignature(2, Typer.Number, function(self, ZIndex)
 			self.Button.ZIndex = ZIndex
 			self.InnerCircle.ZIndex = ZIndex
 
-			return true
-		end;
+			self:rawset("ZIndex", ZIndex)
+		end);
 	};
 
 	Methods = {
-		SetChecked = function(self, Checked)
+		SetChecked = Typer.AssignSignature(2, Typer.OptionalBoolean, function(self, Checked)
 			if Checked == nil then Checked = true end
-			if type(Checked) ~= "boolean" then return false end
 			local Changed = self.Checked == Checked == false
 
 			if Changed then
@@ -129,7 +127,7 @@ return PseudoInstance:Register("Radio", {
 
 			self:rawset("Checked", Checked)
 			self.OnChecked:Fire(Checked)
-		end;
+		end);
 	};
 
 	Init = function(self)
