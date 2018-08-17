@@ -1,4 +1,4 @@
--- Material Checkbox
+-- Material Design Checkbox PseudoInstance
 -- @specs https://material.io/guidelines/components/selection-controls.html
 -- @author Validark
 
@@ -10,6 +10,7 @@ local Resources = require(ReplicatedStorage:WaitForChild("Resources"))
 local Debug = Resources:LoadLibrary("Debug")
 local Tween = Resources:LoadLibrary("Tween")
 local Color = Resources:LoadLibrary("Color")
+local Typer = Resources:LoadLibrary("Typer")
 local Enumeration = Resources:LoadLibrary("Enumeration")
 local PseudoInstance = Resources:LoadLibrary("PseudoInstance")
 local SelectionController = Resources:LoadLibrary("SelectionController")
@@ -23,16 +24,17 @@ local UNCHECKED_CHECKBOX_IMAGE = "rbxassetid://1990916223"
 local INDETERMINATE_CHECKBOX_IMAGE = "rbxassetid://1990919246"
 
 -- Preload Images
-ContentProvider:PreloadAsync{CHECKED_CHECKBOX_IMAGE, UNCHECKED_CHECKBOX_IMAGE}
+spawn(function()
+	ContentProvider:PreloadAsync{CHECKED_CHECKBOX_IMAGE, UNCHECKED_CHECKBOX_IMAGE}
+end)
 
 -- Configuration
-local ANIMATION_TIME = 0.125
+local ANIMATION_TIME = 0.1
 
 -- Constants
 local SHRINK_DURATION = ANIMATION_TIME --* 0.95
 local DRAW_DURATION = ANIMATION_TIME * (1 / 0.7501)
 local FILL_DURATION = ANIMATION_TIME * (1 / 0.9286)
-local DEFAULT_CHECKBOX_COLOR3 = Color.Teal[500]
 local CHECKBOX_SIZE = UDim2.new(0, 24, 0, 24)
 
 local CHECKBOX_THEMES = {
@@ -79,232 +81,6 @@ local SETS_GOALS = {
 	InnerCorners = SETS.Corners;
 	InnerEdges = SETS.Edges;
 }
-
-local function ExpandFrame(self, x)
-	local Grid = self.Grid
-	local ImageTransparency = self.ImageTransparency
-	local ImageOpacity = 1 - ImageTransparency
-
-	for Name, Start in next, SETS_GOALS do
-		Start = ImageOpacity * Start + ImageTransparency
-		local End = ImageOpacity * SETS[Name] + ImageTransparency - Start
-		local Objects = Grid[Name]
-
-		for a = 1, #Objects do
-			Objects[a].BackgroundTransparency = Start + x * End
-		end
-	end
-end
-
-local function ShrinkFrame(self, x)
-	local Grid = self.Grid
-	local ImageTransparency = self.ImageTransparency
-	local ImageOpacity = 1 - ImageTransparency
-
-	for Name, Start in next, SETS do
-		Start = ImageOpacity * Start + ImageTransparency
-		local End = ImageOpacity * SETS_GOALS[Name] + ImageTransparency - Start
-		local Objects = Grid[Name]
-
-		for a = 1, #Objects do
-			Objects[a].BackgroundTransparency = Start + x * End
-		end
-	end
-
-	if x == 1 then
-		self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, ExpandFrame, self)
-	end
-end
-
-local function DrawCheckmark(self, x)
-	local Grid = self.Grid
-
-	for c = 1, -1, -2 do
-		local a = floor(11 + x * (4 - 2*c - 11)) -- Lerp(11, 4 - 2*c, x)
-		local d = c == 1 and 15 or -4
-
-		for a = a, 10 do
-			local b = -c*a + d
-			local e
-
-			if a == 2 and b == 13 then
-				e = 0.18
-			elseif a == 3 and b == 12 or a == 4 and b == 11 or a == 5 and b == 10 or a == 9 and (b == 5 or b == 6) then
-				e = 0.36
-			elseif a == 6 then
-				if b == 2 then
-					e = 0.18
-				elseif b == 9 then
-					e = 0.36
-				end
-			elseif a == 7 then
-				if b == 3 then
-					e = 0.35
-				elseif b == 8 then
-					e = 0.36
-				end
-			elseif a == 8 then
-				if b == 4 then
-					e = 0.35
-				elseif b == 7 then
-					e = 0.36
-				end
-			elseif a == 10 then
-				if b == 5 or b == 6 then
-					e = 0.99
-				end
-			end
-
-			Grid[14 * (a - 1) + b].BackgroundTransparency = e
-			Grid[14 * a + b].BackgroundTransparency = 0.99
-			Grid[14 * (a + 1) + b].BackgroundTransparency = 1
-			Grid[14 * (a + 1) + b + c].BackgroundTransparency = 0.5
-		end
-		Grid[a * (14 - c) + c + d].BackgroundTransparency = c == 1 and 0.5 or 0.51 -- 14 * a + -c * a + d + c
-
-		if a == 2 then
-			self.Button.Image = CHECKED_CHECKBOX_IMAGE
-			self.Button.ImageTransparency = 0
-			self.GridFrame.Visible = false
-		end
-	end
-	Grid[160].BackgroundTransparency = 0.5 -- 12, 6
-end
-
-local function FillCenter(self, x)
-	local Grid = self.Grid
-	local CurrentSize = 0.5 * floor(14*(2 - x)) -- Floor(Lerp(14, 7, x), 0.5)
-
-	for i = 1, 14 - CurrentSize do
-		for a = i, 15 - i do
-			Grid[14 * (i - 1) + a].BackgroundTransparency = 0
-			Grid[14 * (a - 1) + i].BackgroundTransparency = 0
-			Grid[14 * ((15 - i) - 1) + a].BackgroundTransparency = 0
-			Grid[14 * (a - 1) + 15 - i].BackgroundTransparency = 0
-		end
-	end
-
-	if (CurrentSize + 0.5) % 1 == 0 then
-		local i = 14.5 - CurrentSize
-		for a = i, 15 - i do
-			Grid[14 * (i - 1) + a].BackgroundTransparency = 0.5
-			Grid[14 * (a - 1) + i].BackgroundTransparency = 0.5
-			Grid[14 * ((15 - i) - 1) + a].BackgroundTransparency = 0.5
-			Grid[14 * (a - 1) + 15 - i].BackgroundTransparency = 0.5
-		end
-	end
-
-	local OpenTween = self.OpenTween
-	if CurrentSize == 7 and OpenTween then
-		self.OpenTween:Stop()
-		self.OpenTween = Tween.new(DRAW_DURATION, CHECKMARK_DRAW_BEZIER, DrawCheckmark, self)
-	end
-end
-
-local function EmptyCenter(self, x)
-	local Grid = self.Grid
-	local CurrentSize = 0.5 * ceil(14 * x) -- Ceil(Lerp(0, 7, x), 0.5)
-
-	for i = 1, CurrentSize do
-		local Start = 8 - i
-		local End = 7 + i
-
-		for a = Start, End do
-			Grid[14 * (Start - 1) + a].BackgroundTransparency = 1
-			Grid[14 * (a - 1) + Start].BackgroundTransparency = 1
-			Grid[14 * (End - 1) + a].BackgroundTransparency = 1
-			Grid[14 * (a - 1) + End].BackgroundTransparency = 1
-		end
-	end
-
-	if (CurrentSize + 0.5) % 1 == 0 then
-		local i = 0.5 + CurrentSize
-		local Start = 8 - i
-		local End = 7 + i
-
-		for a = Start, End do
-			local BackgroundTransparency = 0.5 * (self.ImageTransparency + 1) -- CompoundTransparency
-			Grid[14 * (Start - 1) + a].BackgroundTransparency = BackgroundTransparency
-			Grid[14 * (a - 1) + Start].BackgroundTransparency = BackgroundTransparency
-			Grid[14 * (End - 1) + a].BackgroundTransparency = BackgroundTransparency
-			Grid[14 * (a - 1) + End].BackgroundTransparency = BackgroundTransparency
-		end
-	end
-
-	if CurrentSize == 7 then
-		self.Button.Image = UNCHECKED_CHECKBOX_IMAGE
-		self.Button.ImageTransparency = CHECKBOX_THEMES[self.Theme.Value].ImageTransparency
-		self.GridFrame.Visible = false
-	end
-end
-
-local function EraseCheckmark(self, x)
-	local Grid = self.Grid
-	local ImageTransparency = self.ImageTransparency
-	local XOffset, YOffset = self.XOffset, self.YOffset
-	local HalfImageTransparency = 0.5 * (ImageTransparency + 1) -- CompoundTransparency
-	local a = ceil(8*x + 1) -- ceil(Lerp(1, 9, x))
-
-	for a = 2, a do
-		local Object1 = 14 * (a + XOffset - 1) + 15 - a + YOffset
-		local Object2 = Object1 + 14
-		local Object3 = Object2 + 1
-
-		if Object1 > 0 then Grid[Object1].BackgroundTransparency = ImageTransparency end
-		if Object2 > 0 then Grid[Object2].BackgroundTransparency = ImageTransparency end
-		if Object3 > 0 then Grid[Object3].BackgroundTransparency = ImageTransparency end
-
-		Grid[Object2 + 14].BackgroundTransparency = HalfImageTransparency
-		Grid[Object3 + 14].BackgroundTransparency = ImageTransparency
-	end
-
-	local c = ceil(4*x + 5) -- Lerp(5, 9, x)
-	local d = c - 4
-
-	for c = 6, c do
-		local e = 14 * (c + XOffset - 1) + c - 4 + YOffset
-		Grid[e].BackgroundTransparency = ImageTransparency
-		Grid[e + 13].BackgroundTransparency = ImageTransparency
-		Grid[e + 14].BackgroundTransparency = ImageTransparency
-		Grid[e + 28].BackgroundTransparency = HalfImageTransparency
-		Grid[e + 27].BackgroundTransparency = ImageTransparency
-	end
-
-	local NewXOffset = floor(-5*x + 1) -- Lerp(1, -3 - 1, x)
-	local NewYOffset = ceil(3*x - 1) -- Lerp(-1, 2, x)
-
-	local XOffsetChange = XOffset - NewXOffset
-	local YOffsetChange = NewYOffset - YOffset
-
-	self.XOffset, self.YOffset = NewXOffset, NewYOffset
-
-	-- Shift according to XOffsetChange and YOffsetChange
-	for a = 1, XOffsetChange do
-		for b = 1, 14 do
-			for f = 1, 13 do
-				Grid[14 * (f - 1) + b].BackgroundTransparency = Grid[14 * f + b].BackgroundTransparency
-			end
-		end
-	end
-
-	for a = 1, YOffsetChange do
-		for b = 1, 14 do
-			for f = 14, 2, -1 do
-				Grid[14 * (b - 1) + f].BackgroundTransparency = Grid[14 * (b - 1) + f - 1].BackgroundTransparency
-			end
-			Grid[14 * (b - 1) + 1].BackgroundTransparency = ImageTransparency
-		end
-	end
-
-	local OpenTween = self.OpenTween
-	if a == 9 and OpenTween then
-		self.OpenTween:Stop()
-		for a = 1, 196 do
-			Grid[a].BackgroundTransparency = ImageTransparency
-		end
-		self.OpenTween = Tween.new(FILL_DURATION, CENTER_EMPTY_BEZIER, EmptyCenter, self)
-	end
-end
 
 local Checkbox do
 	local MIDDLE_ANCHOR = Vector2.new(0.5, 0.5)
@@ -488,6 +264,238 @@ return PseudoInstance:Register("Checkbox", {
 				Pixel.BackgroundTransparency = Opacity * Pixel.BackgroundTransparency + Transparency -- CompoundTransparency
 			end
 		end;
+
+		ExpandFrame = function(self, x)
+			x = x or 1
+			local Grid = self.Grid
+			local ImageTransparency = self.ImageTransparency
+			local ImageOpacity = 1 - ImageTransparency
+
+			for Name, Start in next, SETS_GOALS do
+				Start = ImageOpacity * Start + ImageTransparency
+				local End = ImageOpacity * SETS[Name] + ImageTransparency - Start
+				local Objects = Grid[Name]
+
+				for a = 1, #Objects do
+					Objects[a].BackgroundTransparency = Start + x * End
+				end
+			end
+		end;
+
+		ShrinkFrame = function(self, x)
+			x = x or 1
+			local Grid = self.Grid
+			local ImageTransparency = self.ImageTransparency
+			local ImageOpacity = 1 - ImageTransparency
+
+			for Name, Start in next, SETS do
+				Start = ImageOpacity * Start + ImageTransparency
+				local End = ImageOpacity * SETS_GOALS[Name] + ImageTransparency - Start
+				local Objects = Grid[Name]
+
+				for a = 1, #Objects do
+					Objects[a].BackgroundTransparency = Start + x * End
+				end
+			end
+
+			if x == 1 then
+				self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, self.ExpandFrame, self)
+			end
+		end;
+
+		DrawCheckmark = function(self, x)
+			x = x or 1
+			local Grid = self.Grid
+
+			for c = 1, -1, -2 do
+				local a = floor(11 + x * (4 - 2*c - 11)) -- Lerp(11, 4 - 2*c, x)
+				local d = c == 1 and 15 or -4
+
+				for a = a, 10 do
+					local b = -c*a + d
+					local e
+
+					if a == 2 and b == 13 then
+						e = 0.18
+					elseif a == 3 and b == 12 or a == 4 and b == 11 or a == 5 and b == 10 or a == 9 and (b == 5 or b == 6) then
+						e = 0.36
+					elseif a == 6 then
+						if b == 2 then
+							e = 0.18
+						elseif b == 9 then
+							e = 0.36
+						end
+					elseif a == 7 then
+						if b == 3 then
+							e = 0.35
+						elseif b == 8 then
+							e = 0.36
+						end
+					elseif a == 8 then
+						if b == 4 then
+							e = 0.35
+						elseif b == 7 then
+							e = 0.36
+						end
+					elseif a == 10 then
+						if b == 5 or b == 6 then
+							e = 0.99
+						end
+					end
+
+					Grid[14 * (a - 1) + b].BackgroundTransparency = e
+					Grid[14 * a + b].BackgroundTransparency = 0.99
+					Grid[14 * (a + 1) + b].BackgroundTransparency = 1
+					Grid[14 * (a + 1) + b + c].BackgroundTransparency = 0.5
+				end
+				Grid[a * (14 - c) + c + d].BackgroundTransparency = c == 1 and 0.5 or 0.51 -- 14 * a + -c * a + d + c
+
+				if a == 2 then
+					self.Button.Image = CHECKED_CHECKBOX_IMAGE
+					self.Button.ImageTransparency = 0
+					self.GridFrame.Visible = false
+				end
+			end
+			Grid[160].BackgroundTransparency = 0.5 -- 12, 6
+		end;
+
+		FillCenter = function(self, x)
+			x = x or 1
+			local Grid = self.Grid
+			local CurrentSize = 0.5 * floor(14*(2 - x)) -- Floor(Lerp(14, 7, x), 0.5)
+
+			for i = 1, 14 - CurrentSize do
+				for a = i, 15 - i do
+					Grid[14 * (i - 1) + a].BackgroundTransparency = 0
+					Grid[14 * (a - 1) + i].BackgroundTransparency = 0
+					Grid[14 * ((15 - i) - 1) + a].BackgroundTransparency = 0
+					Grid[14 * (a - 1) + 15 - i].BackgroundTransparency = 0
+				end
+			end
+
+			if (CurrentSize + 0.5) % 1 == 0 then
+				local i = 14.5 - CurrentSize
+				for a = i, 15 - i do
+					Grid[14 * (i - 1) + a].BackgroundTransparency = 0.5
+					Grid[14 * (a - 1) + i].BackgroundTransparency = 0.5
+					Grid[14 * ((15 - i) - 1) + a].BackgroundTransparency = 0.5
+					Grid[14 * (a - 1) + 15 - i].BackgroundTransparency = 0.5
+				end
+			end
+
+			local OpenTween = self.OpenTween
+			if CurrentSize == 7 and OpenTween then
+				self.OpenTween:Stop()
+				self.OpenTween = Tween.new(DRAW_DURATION, CHECKMARK_DRAW_BEZIER, self.DrawCheckmark, self)
+			end
+		end;
+
+		EmptyCenter = function(self, x)
+			x = x or 1
+			local Grid = self.Grid
+			local CurrentSize = 0.5 * ceil(14 * x) -- Ceil(Lerp(0, 7, x), 0.5)
+
+			for i = 1, CurrentSize do
+				local Start = 8 - i
+				local End = 7 + i
+
+				for a = Start, End do
+					Grid[14 * (Start - 1) + a].BackgroundTransparency = 1
+					Grid[14 * (a - 1) + Start].BackgroundTransparency = 1
+					Grid[14 * (End - 1) + a].BackgroundTransparency = 1
+					Grid[14 * (a - 1) + End].BackgroundTransparency = 1
+				end
+			end
+
+			if (CurrentSize + 0.5) % 1 == 0 then
+				local i = 0.5 + CurrentSize
+				local Start = 8 - i
+				local End = 7 + i
+
+				for a = Start, End do
+					local BackgroundTransparency = 0.5 * (self.ImageTransparency + 1) -- CompoundTransparency
+					Grid[14 * (Start - 1) + a].BackgroundTransparency = BackgroundTransparency
+					Grid[14 * (a - 1) + Start].BackgroundTransparency = BackgroundTransparency
+					Grid[14 * (End - 1) + a].BackgroundTransparency = BackgroundTransparency
+					Grid[14 * (a - 1) + End].BackgroundTransparency = BackgroundTransparency
+				end
+			end
+
+			if CurrentSize == 7 then
+				self.Button.Image = UNCHECKED_CHECKBOX_IMAGE
+				self.Button.ImageTransparency = CHECKBOX_THEMES[self.Theme.Value].ImageTransparency
+				self.GridFrame.Visible = false
+			end
+		end;
+
+		EraseCheckmark = function(self, x)
+			x = x or 1
+			local Grid = self.Grid
+			local ImageTransparency = self.ImageTransparency
+			local XOffset, YOffset = self.XOffset, self.YOffset
+			local HalfImageTransparency = 0.5 * (ImageTransparency + 1) -- CompoundTransparency
+			local a = ceil(8*x + 1) -- ceil(Lerp(1, 9, x))
+
+			for a = 2, a do
+				local Object1 = 14 * (a + XOffset - 1) + 15 - a + YOffset
+				local Object2 = Object1 + 14
+				local Object3 = Object2 + 1
+
+				if Object1 > 0 then Grid[Object1].BackgroundTransparency = ImageTransparency end
+				if Object2 > 0 then Grid[Object2].BackgroundTransparency = ImageTransparency end
+				if Object3 > 0 then Grid[Object3].BackgroundTransparency = ImageTransparency end
+
+				Grid[Object2 + 14].BackgroundTransparency = HalfImageTransparency
+				Grid[Object3 + 14].BackgroundTransparency = ImageTransparency
+			end
+
+			local c = ceil(4*x + 5) -- Lerp(5, 9, x)
+			local d = c - 4
+
+			for c = 6, c do
+				local e = 14 * (c + XOffset - 1) + c - 4 + YOffset
+				Grid[e].BackgroundTransparency = ImageTransparency
+				Grid[e + 13].BackgroundTransparency = ImageTransparency
+				Grid[e + 14].BackgroundTransparency = ImageTransparency
+				Grid[e + 28].BackgroundTransparency = HalfImageTransparency
+				Grid[e + 27].BackgroundTransparency = ImageTransparency
+			end
+
+			local NewXOffset = floor(-5*x + 1) -- Lerp(1, -3 - 1, x)
+			local NewYOffset = ceil(3*x - 1) -- Lerp(-1, 2, x)
+
+			local XOffsetChange = XOffset - NewXOffset
+			local YOffsetChange = NewYOffset - YOffset
+
+			self.XOffset, self.YOffset = NewXOffset, NewYOffset
+
+			-- Shift according to XOffsetChange and YOffsetChange
+			for a = 1, XOffsetChange do
+				for b = 1, 14 do
+					for f = 1, 13 do
+						Grid[14 * (f - 1) + b].BackgroundTransparency = Grid[14 * f + b].BackgroundTransparency
+					end
+				end
+			end
+
+			for a = 1, YOffsetChange do
+				for b = 1, 14 do
+					for f = 14, 2, -1 do
+						Grid[14 * (b - 1) + f].BackgroundTransparency = Grid[14 * (b - 1) + f - 1].BackgroundTransparency
+					end
+					Grid[14 * (b - 1) + 1].BackgroundTransparency = ImageTransparency
+				end
+			end
+
+			local OpenTween = self.OpenTween
+			if a == 9 and OpenTween then
+				self.OpenTween:Stop()
+				for a = 1, 196 do
+					Grid[a].BackgroundTransparency = ImageTransparency
+				end
+				self.OpenTween = Tween.new(FILL_DURATION, CENTER_EMPTY_BEZIER, self.EmptyCenter, self)
+			end
+		end
 	};
 
 	WrappedProperties = {
@@ -495,23 +503,20 @@ return PseudoInstance:Register("Checkbox", {
 	};
 
 	Properties = {
-		Indeterminate = function(self, Indeterminate)
-			if type(Indeterminate) ~= "boolean" then Debug.Error("Expected Indeterminate to be a boolean, got %s", Indeterminate) end
-
+		Indeterminate = Typer.AssignSignature(2, Typer.Boolean, function(self, Indeterminate)
 			if Indeterminate then
 				if self.Checked then
 					self:rawset("Checked", false)
 				end
 				self:SetColorAndTransparency(self.PrimaryColor3, 0)
-				FillCenter(self, 1)
+				self:FillCenter()
 				self.Button.Image = INDETERMINATE_CHECKBOX_IMAGE
 			end
 
-			return true
-		end;
+			self:rawset("Indeterminate", Indeterminate)
+		end);
 
-		Checked = function(self, Value)
-			if type(Value) ~= "boolean" then Debug.Error("Expected Value to be a boolean, got %s", Value) end
+		Checked = Typer.AssignSignature(2, Typer.Boolean, function(self, Value)
 			self:rawset("Checked", Value)
 			self.Indeterminate = false
 
@@ -524,20 +529,19 @@ return PseudoInstance:Register("Checkbox", {
 
 			if Value then
 				self:SetColorAndTransparency(self.PrimaryColor3, 0)
-				FillCenter(self, 1)
-				DrawCheckmark(self, 1)
+				self:FillCenter()
+				self:DrawCheckmark()
 			else
 				local Theme = CHECKBOX_THEMES[self.Theme.Value]
 				self:SetColorAndTransparency(Theme.ImageColor3, Theme.ImageTransparency)
-				EraseCheckmark(self, 1)
-				EmptyCenter(self, 1)
+				self:EraseCheckmark()
+				self:EmptyCenter()
 			end
 
 			self.OnChecked:Fire(Value)
-			return true
-		end;
+		end);
 
-		ZIndex = function(self, ZIndex)
+		ZIndex = Typer.AssignSignature(2, Typer.Number, function(self, ZIndex)
 			local Grid = self.Grid
 			self.GridFrame.ZIndex = ZIndex
 
@@ -553,16 +557,15 @@ return PseudoInstance:Register("Checkbox", {
 			end
 
 			self.Button.ZIndex = ZIndex + 1
-			return true
-		end;
+			self:rawset("ZIndex", ZIndex)
+		end);
 	};
 
 	Events = {};
 
 	Methods = {
-		SetChecked = function(self, NewChecked)
+		SetChecked = Typer.AssignSignature(2, Typer.OptionalBoolean, function(self, NewChecked)
 			if NewChecked == nil then NewChecked = not self.Checked end
-			if type(NewChecked) ~= "boolean" then Debug.Error("bad argument #2 to SetChecked: expected boolean, got %s", NewChecked) end
 			local Button = self.Button
 
 			if self.OpenTween then
@@ -577,16 +580,16 @@ return PseudoInstance:Register("Checkbox", {
 					if NewChecked then
 						self:SetColorAndTransparency(self.PrimaryColor3, 0)
 						Button.ImageTransparency = 1
-						self.OpenTween = self.Indeterminate and Tween.new(DRAW_DURATION, CHECKMARK_DRAW_BEZIER, DrawCheckmark, self) or Tween.new(FILL_DURATION, CENTER_FILL_BEZIER, FillCenter, self)
-						self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, ShrinkFrame, self)
+						self.OpenTween = self.Indeterminate and Tween.new(DRAW_DURATION, CHECKMARK_DRAW_BEZIER, self.DrawCheckmark, self) or Tween.new(FILL_DURATION, CENTER_FILL_BEZIER, self.FillCenter, self)
+						self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, self.ShrinkFrame, self)
 					else
 						local Theme = CHECKBOX_THEMES[self.Theme.Value]
 
 						self:SetColorAndTransparency(Theme.ImageColor3, Theme.ImageTransparency)
 						Button.ImageTransparency = 1
 						self.XOffset, self.YOffset = 0, 0
-						self.OpenTween = Tween.new(DRAW_DURATION, CHECKMARK_ERASE_BEZIER, EraseCheckmark, self)
-						self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, ShrinkFrame, self)
+						self.OpenTween = Tween.new(DRAW_DURATION, CHECKMARK_ERASE_BEZIER, self.EraseCheckmark, self)
+						self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, self.ShrinkFrame, self)
 					end
 
 					self:rawset("Checked", NewChecked)
@@ -596,7 +599,7 @@ return PseudoInstance:Register("Checkbox", {
 					self.Checked = NewChecked
 				end
 			end
-		end;
+		end);
 	};
 
 	Init = function(self)
