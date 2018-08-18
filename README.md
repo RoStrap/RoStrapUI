@@ -1,9 +1,10 @@
 # RoStrapUI
-User Interface Modules for Roblox.
+Material Design User Interface Modules for Roblox.
 
 Click the following links for documentation:
 - [AsymmetricTransformation](https://rostrap.github.io/Libraries/RoStrapUI/AsymmetricTransformation/)
 - [Checkbox](https://rostrap.github.io/Libraries/RoStrapUI/Checkbox/)
+- [ChoiceDialog](https://rostrap.github.io/Libraries/RoStrapUI/ChoiceDialog/)
 - [Radio](https://rostrap.github.io/Libraries/RoStrapUI/Radio/)
 - [RippleButton](https://rostrap.github.io/Libraries/RoStrapUI/RippleButton/)
 - [Rippler](https://rostrap.github.io/Libraries/RoStrapUI/Rippler/)
