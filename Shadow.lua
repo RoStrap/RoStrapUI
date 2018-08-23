@@ -263,16 +263,18 @@ return PseudoInstance:Register("Shadow", {
 		end);
 
 		Parent = Typer.AssignSignature(2, Typer.OptionalInstanceWhichIsAGuiObject, function(self, Parent)
-			local function ZIndexChanged()
-				local ParentZIndex = Parent.ZIndex
+			if Parent then
+				local function ZIndexChanged()
+					local ParentZIndex = Parent.ZIndex
 
-				for i = 1, 3 do
-					self[ShadowNames[i]].ZIndex = ParentZIndex - 1
+					for i = 1, 3 do
+						self[ShadowNames[i]].ZIndex = ParentZIndex - 1
+					end
 				end
-			end
 
-			self.Janitor:Add(Parent:GetPropertyChangedSignal("ZIndex"):Connect(ZIndexChanged), "Disconnect", "ZIndexChanged")
-			ZIndexChanged()
+				self.Janitor:Add(Parent:GetPropertyChangedSignal("ZIndex"):Connect(ZIndexChanged), "Disconnect", "ZIndexChanged")
+				ZIndexChanged()
+			end
 
 			for i = 1, 3 do
 				self[ShadowNames[i]].Parent = Parent
