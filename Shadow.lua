@@ -262,7 +262,7 @@ return PseudoInstance:Register("Shadow", {
 			self:rawset("Elevation", Elevation)
 		end);
 
-		Parent = Typer.AssignSignature(2, Typer.InstanceWhichIsAGuiObject, function(self, Parent)
+		Parent = Typer.AssignSignature(2, Typer.OptionalInstanceWhichIsAGuiObject, function(self, Parent)
 			local function ZIndexChanged()
 				local ParentZIndex = Parent.ZIndex
 
