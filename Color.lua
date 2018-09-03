@@ -369,7 +369,7 @@ local Color = {
 	White = rgb(255, 255, 255);
 }
 
-function Color.toRGBString(c, a)
+function Color.ToRGBString(c, a)
 	local r = c.r * 255 + 0.5
 	local g = c.g * 255 + 0.5
 	local b = c.b * 255 + 0.5
@@ -381,7 +381,7 @@ function Color.toRGBString(c, a)
 	end
 end
 
-function Color.toHexString(c, a)
+function Color.ToHexString(c, a)
 	local r = c.r * 255 + 0.5
 	local g = c.g * 255 + 0.5
 	local b = c.b * 255 + 0.5
@@ -395,7 +395,7 @@ end
 
 local Hash = ("#"):byte()
 
-function Color.fromHex(Hex)
+function Color.FromHex(Hex)
 	-- Converts a 3-digit or 6-digit hex color to RGB
 	-- Takes in a string of the form: "#FFFFFF" or "#FFF" or a 6-digit hexadecimal number
 
@@ -438,7 +438,7 @@ end
 
 local floor = math.floor
 
-function Color.toHex(Color3)
+function Color.ToHex(Color3)
 	return floor(Color3.r * 0xFF + 0.5) * 0x010000 +  floor(Color3.g * 0xFF + 0.5) * 0x000100 + floor(Color3.b * 0xFF + 0.5) * 0x000001
 end
 
