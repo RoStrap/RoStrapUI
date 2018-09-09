@@ -369,7 +369,7 @@ local Color = {
 	White = rgb(255, 255, 255);
 }
 
-function Color.ToRGBString(c, a)
+function Color.toRGBString(c, a)
 	local r = c.r * 255 + 0.5
 	local g = c.g * 255 + 0.5
 	local b = c.b * 255 + 0.5
@@ -380,8 +380,9 @@ function Color.ToRGBString(c, a)
 		return ("rgb(%u, %u, %u)"):format(r, g, b)
 	end
 end
+Color.ToRGBString = Color.toRGBString
 
-function Color.ToHexString(c, a)
+function Color.toHexString(c, a)
 	local r = c.r * 255 + 0.5
 	local g = c.g * 255 + 0.5
 	local b = c.b * 255 + 0.5
@@ -392,10 +393,11 @@ function Color.ToHexString(c, a)
 		return ("#%X%X%X"):format(r, g, b)
 	end
 end
+Color.ToHexString = Color.toHexString
 
 local Hash = ("#"):byte()
 
-function Color.FromHex(Hex)
+function Color.fromHex(Hex)
 	-- Converts a 3-digit or 6-digit hex color to RGB
 	-- Takes in a string of the form: "#FFFFFF" or "#FFF" or a 6-digit hexadecimal number
 
@@ -435,11 +437,13 @@ function Color.FromHex(Hex)
 		return rgb(R * 0x11, G * 0x11, (Hex - G * 0x10) * 0x11)
 	end
 end
+Color.FromHex = Color.fromHex
 
 local floor = math.floor
 
-function Color.ToHex(Color3)
+function Color.toHex(Color3)
 	return floor(Color3.r * 0xFF + 0.5) * 0x010000 +  floor(Color3.g * 0xFF + 0.5) * 0x000100 + floor(Color3.b * 0xFF + 0.5) * 0x000001
 end
+Color.ToHex = Color.toHex
 
 return Table.Lock(Color)
