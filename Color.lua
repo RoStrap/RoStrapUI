@@ -380,6 +380,7 @@ function Color.toRGBString(c, a)
 		return ("rgb(%u, %u, %u)"):format(r, g, b)
 	end
 end
+Color.ToRGBString = Color.toRGBString
 
 function Color.toHexString(c, a)
 	local r = c.r * 255 + 0.5
@@ -392,6 +393,7 @@ function Color.toHexString(c, a)
 		return ("#%X%X%X"):format(r, g, b)
 	end
 end
+Color.ToHexString = Color.toHexString
 
 local Hash = ("#"):byte()
 
@@ -435,11 +437,13 @@ function Color.fromHex(Hex)
 		return rgb(R * 0x11, G * 0x11, (Hex - G * 0x10) * 0x11)
 	end
 end
+Color.FromHex = Color.fromHex
 
 local floor = math.floor
 
 function Color.toHex(Color3)
 	return floor(Color3.r * 0xFF + 0.5) * 0x010000 +  floor(Color3.g * 0xFF + 0.5) * 0x000100 + floor(Color3.b * 0xFF + 0.5) * 0x000001
 end
+Color.ToHex = Color.toHex
 
 return Table.Lock(Color)
