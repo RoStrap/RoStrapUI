@@ -1,4 +1,5 @@
 -- Material Design Button PseudoInstances with Ripples
+-- @documentation https://rostrap.github.io/Libraries/RoStrapUI/RippleButton/
 -- @author Validark
 
 local Players = game:GetService("Players")
@@ -328,9 +329,14 @@ return PseudoInstance:Register("RippleButton", {
 		self:rawset("PrimaryColor3", Color.Black)
 		self.TextLabel = self.Object.TextLabel
 
-		self.TextLabel:GetPropertyChangedSignal("TextBounds"):Connect(function()
-			self:rawset("TextBounds", self.TextLabel.TextBounds)
-		end)
+		local function UpdateTextBounds()
+			if self.TextLabel then
+				self:rawset("TextBounds", self.TextLabel.TextBounds)
+			end
+		end
+
+		self.TextLabel:GetPropertyChangedSignal("TextBounds"):Connect(UpdateTextBounds)
+		UpdateTextBounds()
 
 		self.Rippler = PseudoInstance.new("Rippler")
 		self.Rippler.RippleTransparency = 0.68
