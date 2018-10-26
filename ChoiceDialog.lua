@@ -1,6 +1,8 @@
 -- 2-step Choice Dialog ReplicatedPseudoInstance
 -- @author Validark
 
+-- Note: You should only be using 1 at once, for a given player
+
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
@@ -50,6 +52,8 @@ end
 local Frame do
 	Frame = Instance.new("Frame")
 	Frame.BackgroundTransparency = 1
+	Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	Frame.Size = UDim2.new(1, 0, 1, 0)
 	Frame.Name = "ChoiceDialog"
 
@@ -129,6 +133,10 @@ local function SubDialogsActive()
 	DialogsActive = DialogsActive - 1
 end
 
+local function AdjustButtonSize(Button)
+	Button.Size = UDim2.new(0, Button.TextBounds.X + BUTTON_WIDTH_PADDING * 2, 0, 36)
+end
+
 return PseudoInstance:Register("ChoiceDialog", {
 	Storage = {};
 
@@ -170,6 +178,14 @@ return PseudoInstance:Register("ChoiceDialog", {
 				ItemContainer:Destroy() -- ItemDescriptions are destroyed here
 				self.AssociatedRadioContainers[Item] = nil
 			end
+			
+			if self.RadioGroup then
+				self.Janitor[self.RadioGroup] = self.RadioGroup:Destroy()
+			end
+			
+			self.RadioGroup = PseudoInstance.new("RadioGroup")
+			self.Janitor:Add(self.RadioGroup.SelectionChanged:Connect(ConfirmEnable, self.ConfirmButton), "Disconnect")
+			self.Janitor:Add(self.RadioGroup, "Destroy")
 
 			for i = 1, NumOptions do
 				local ChoiceName = Options[i]
@@ -192,6 +208,7 @@ return PseudoInstance:Register("ChoiceDialog", {
 				Item.PrimaryColor3 = self.PrimaryColor3
 
 				self.AssociatedRadioContainers[Item] = ItemContainer
+
 				self.RadioGroup:Add(Item, ChoiceName)
 				ItemContainer.OnPressed:Connect(Item.SetChecked, Item)
 
@@ -218,14 +235,12 @@ return PseudoInstance:Register("ChoiceDialog", {
 		DismissText = Typer.AssignSignature(2, Typer.String, function(self, Text)
 			local DismissButton = self.DismissButton
 			DismissButton.Text = Text
-			DismissButton.Size = UDim2.new(0, DismissButton.TextBounds.X + BUTTON_WIDTH_PADDING * 2, 0, 36)
 			self:rawset("DismissText", DismissButton.Text)
 		end);
 
 		ConfirmText = Typer.AssignSignature(2, Typer.String, function(self, Text)
 			local ConfirmButton = self.ConfirmButton
 			ConfirmButton.Text = Text
-			ConfirmButton.Size = UDim2.new(0, ConfirmButton.TextBounds.X + BUTTON_WIDTH_PADDING * 2, 0, 36)
 			self:rawset("ConfirmText", ConfirmButton.Text)
 		end);
 
@@ -265,20 +280,21 @@ return PseudoInstance:Register("ChoiceDialog", {
 		local DismissButton = ConfirmButton:Clone()
 		DismissButton.Position = UDim2.new(0, -8, 1, 0)
 		DismissButton.Parent = ConfirmButton.Object
+		
+		self.Janitor:Add(DismissButton:GetPropertyChangedSignal("TextBounds"):Connect(AdjustButtonSize, DismissButton), "Disconnect")
+		self.Janitor:Add(ConfirmButton:GetPropertyChangedSignal("TextBounds"):Connect(AdjustButtonSize, ConfirmButton), "Disconnect")
+		
+		ConfirmButton.Size = UDim2.new(0, ConfirmButton.TextBounds.X + BUTTON_WIDTH_PADDING * 2, 0, 36)
 
 		ConfirmButton.Disabled = true
 
 		self.ConfirmButton = ConfirmButton
 		self.DismissButton = DismissButton
-		self.RadioGroup = PseudoInstance.new("RadioGroup")
-
-		self.Janitor:Add(self.RadioGroup.SelectionChanged:Connect(ConfirmEnable, ConfirmButton), "Disconnect")
 		self.Janitor:Add(ConfirmButton.OnPressed:Connect(OnConfirm, self), "Disconnect")
 		self.Janitor:Add(DismissButton.OnPressed:Connect(OnDismiss, self), "Disconnect")
 
 		self.Janitor:Add(self.Object, "Destroy")
 		self.Janitor:Add(self.UIScale, "Destroy")
-		self.Janitor:Add(self.RadioGroup, "Destroy")
 		self.Janitor:Add(SubDialogsActive, true)
 
 		self.PrimaryColor3 = Color3.fromRGB(98, 0, 238)
