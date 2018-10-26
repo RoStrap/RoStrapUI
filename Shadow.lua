@@ -1,4 +1,5 @@
 -- Shadow / Elevation Rendering PseudoInstance
+-- @documentation https://rostrap.github.io/Libraries/RoStrapUI/Shadow/
 -- @author Validark
 -- @author AmaranthineCodices - Made the Shadow images and created the rendering framework
 -- @original https://github.com/AmaranthineCodices/roact-material/blob/master/src/Components/Shadow.lua
@@ -331,5 +332,6 @@ return PseudoInstance:Register("Shadow", {
 
 		self:rawset("Transparency", 0)
 		self:rawset("Elevation", Enumeration.ShadowElevation.Elevation0)
+		self:superinit()
 	end;
 })
