@@ -1,4 +1,5 @@
 -- 2-step Choice Dialog ReplicatedPseudoInstance
+-- @documentation https://rostrap.github.io/Libraries/RoStrapUI/ChoiceDialog/
 -- @author Validark
 
 -- Note: You should only be using 1 at once, for a given player
@@ -154,6 +155,11 @@ return PseudoInstance:Register("ChoiceDialog", {
 				Tween(DialogBlur, "Size", 0, InBack, ENTER_TIME, true)
 			end
 		end;
+		
+		Destroy = function(self)
+			self:Dismiss()
+			self:super("Destroy")
+		end;
 	};
 
 	Properties = {
@@ -250,8 +256,10 @@ return PseudoInstance:Register("ChoiceDialog", {
 
 				self.UIScale.Parent = Screen
 				self.Object.Parent = Screen
-				self.DismissButton.Size = UDim2.new(0, self.DismissButton.TextBounds.X + BUTTON_WIDTH_PADDING * 2, 0, 36)
-				self.ConfirmButton.Size = UDim2.new(0, self.ConfirmButton.TextBounds.X + BUTTON_WIDTH_PADDING * 2, 0, 36)
+				
+				AdjustButtonSize(self.DismissButton)
+				AdjustButtonSize(self.ConfirmButton)
+
 				Tween(self.UIScale, "Scale", 1, OutBack, ENTER_TIME, true, HideUIScale, self)
 				Tween(DialogBlur, "Size", 56, OutBack, ENTER_TIME, true)
 			end
@@ -276,15 +284,13 @@ return PseudoInstance:Register("ChoiceDialog", {
 		ConfirmButton.TextTransparency = 0.13
 		ConfirmButton.Style = Flat
 		ConfirmButton.Parent = self.Background
-
+		
 		local DismissButton = ConfirmButton:Clone()
 		DismissButton.Position = UDim2.new(0, -8, 1, 0)
 		DismissButton.Parent = ConfirmButton.Object
 		
 		self.Janitor:Add(DismissButton:GetPropertyChangedSignal("TextBounds"):Connect(AdjustButtonSize, DismissButton), "Disconnect")
 		self.Janitor:Add(ConfirmButton:GetPropertyChangedSignal("TextBounds"):Connect(AdjustButtonSize, ConfirmButton), "Disconnect")
-		
-		ConfirmButton.Size = UDim2.new(0, ConfirmButton.TextBounds.X + BUTTON_WIDTH_PADDING * 2, 0, 36)
 
 		ConfirmButton.Disabled = true
 
