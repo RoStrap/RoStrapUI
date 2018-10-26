@@ -1,4 +1,5 @@
 -- Simple PseudoInstance wrapper to manage Radio buttons
+-- @documentation https://rostrap.github.io/Libraries/RoStrapUI/RadioGroup/
 -- @author Validark
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -37,5 +38,6 @@ return PseudoInstance:Register("RadioGroup", {
 
 	Init = function(self)
 		self.Radios = {}
+		self:superinit()
 	end;
 })
