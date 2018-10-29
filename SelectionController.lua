@@ -1,4 +1,5 @@
 -- SelectionController Class from which Checkbox and Radio inherit
+-- @documentation https://rostrap.github.io/Libraries/RoStrapUI/SelectionController/
 -- @author Validark
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,7 +23,7 @@ local DEFAULT_COLOR3 = Color.Teal[500]
 
 return PseudoInstance:Register("SelectionController", {
 	Internals = {
-		"Button", "Template", "ClickRippler", "HoverRippler", "Indeterminate";
+		"Button", "Template", "ClickRippler", "HoverRippler";
 
 		Themes = {
 			[Enumeration.MaterialTheme.Light.Value] = {
@@ -44,6 +45,7 @@ return PseudoInstance:Register("SelectionController", {
 	Properties = {
 		Checked = Typer.Boolean;
 		Disabled = Typer.Boolean;
+		Indeterminate = Typer.Boolean;
 
 		PrimaryColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, Value)
 			if typeof(Value) ~= "Color3" then Debug.Error("PrimaryColor3 must be a Color3 value") end
