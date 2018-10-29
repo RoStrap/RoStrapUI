@@ -3,6 +3,7 @@
 -- @author Validark
 
 local Players = game:GetService("Players")
+local TextService = game:GetService("TextService")
 local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -57,20 +58,19 @@ local OutlinedImages = {
 
 local ImageButton = Instance.new("ImageButton")
 ImageButton.BackgroundTransparency = 1
-ImageButton.ScaleType = Enum.ScaleType.Slice
+ImageButton.ScaleType = Enum.ScaleType.Slice.Value
 
 local TextLabel = Instance.new("TextLabel")
 TextLabel.BackgroundTransparency = 1
-TextLabel.Font = Enum.Font.SourceSansSemibold
+TextLabel.Font = Enum.Font.SourceSansSemibold.Value
 TextLabel.Size = UDim2.new(1, 0, 1, 0)
-TextLabel.Text = ""
 TextLabel.TextSize = 16
 TextLabel.Parent = ImageButton
 
 local OutlineImage = Instance.new("ImageLabel")
 OutlineImage.BackgroundTransparency = 1
 OutlineImage.Size = UDim2.new(1, 0, 1, 0)
-OutlineImage.ScaleType = Enum.ScaleType.Slice
+OutlineImage.ScaleType = Enum.ScaleType.Slice.Value
 OutlineImage.ImageTransparency = 0.88
 OutlineImage.Name = "Outline"
 OutlineImage.ImageColor3 = Color.Black
@@ -79,7 +79,7 @@ local TOOLTIP_BORDER_RADIUS = 4
 
 local TooltipObject = Instance.new("ImageLabel")
 TooltipObject.BackgroundTransparency = 1
-TooltipObject.ScaleType = Enum.ScaleType.Slice
+TooltipObject.ScaleType = Enum.ScaleType.Slice.Value
 TooltipObject.ImageTransparency = 0.1
 TooltipObject.ImageColor3 = Color3.fromRGB(97, 97, 97)
 TooltipObject.Image = RaisedImages[TOOLTIP_BORDER_RADIUS]
@@ -99,13 +99,14 @@ local Touch = Enum.UserInputType.Touch
 local MouseButton1 = Enum.UserInputType.MouseButton1
 local MouseMovement = Enum.UserInputType.MouseMovement
 
+local LARGE_FRAME_SIZE = Vector2.new(32767, 32767)
+
 local Invisify = {UserInputType = MouseMovement}
 
 return PseudoInstance:Register("RippleButton", {
 	WrappedProperties = {
 		Object = {"AnchorPoint", "Active", "Name", "Size", "Position", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp", "Parent"};
-		TextLabel = {"Font", "Text", "TextSize", "TextXAlignment", "TextYAlignment"};
-		Shadow = {"Elevation"};
+		TextLabel = {"TextXAlignment", "TextYAlignment"};
 	};
 
 	Internals = {
@@ -170,6 +171,33 @@ return PseudoInstance:Register("RippleButton", {
 	};
 
 	Properties = {
+		Elevation = Typer.AssignSignature(2, Typer.EnumerationOfTypeShadowElevation, function(self, Elevation)
+			if Elevation.Value > 0 and self.Style ~= Enumeration.ButtonStyle.Contained then
+				self.Style = Enumeration.ButtonStyle.Contained
+				self.Shadow.Elevation = Elevation
+			end
+
+			self:rawset("Elevation", Elevation)
+		end);
+
+		Text = Typer.AssignSignature(2, Typer.String, function(self, Text)
+			self.TextLabel.Text = Text
+			self:rawset("Text", Text)
+			self:rawset("TextBounds", TextService:GetTextSize(Text, self.TextSize, self.Font, LARGE_FRAME_SIZE))
+		end);
+
+		TextSize = Typer.AssignSignature(2, Typer.Number, function(self, TextSize)
+			self.TextLabel.TextSize = TextSize
+			self:rawset("TextSize", TextSize)
+			self:rawset("TextBounds", TextService:GetTextSize(self.Text, TextSize, self.Font, LARGE_FRAME_SIZE))
+		end);
+
+		Font = Typer.AssignSignature(2, Typer.EnumOfTypeFont, function(self, Font)
+			self.TextLabel.Font = Font
+			self:rawset("Font", Font)
+			self:rawset("TextBounds", TextService:GetTextSize(self.Text, self.TextSize, Font, LARGE_FRAME_SIZE))
+		end);
+
 		TextTransparency = Typer.AssignSignature(2, Typer.Number, function(self, TextTransparency)
 			if not self.Disabled then
 				self.TextLabel.TextTransparency = TextTransparency
@@ -242,7 +270,6 @@ return PseudoInstance:Register("RippleButton", {
 		end);
 
 		Style = Typer.AssignSignature(2, Typer.EnumerationOfTypeButtonStyle, function(self, ButtonStyle)
-			ButtonStyle = Debug.Assert(Enumeration.ButtonStyle:Cast(ButtonStyle))
 			self:rawset("Style", ButtonStyle)
 
 			local StateData = StateOpacity[ButtonStyle.Value]
@@ -327,16 +354,10 @@ return PseudoInstance:Register("RippleButton", {
 	Init = function(self)
 		self:rawset("Object", ImageButton:Clone())
 		self:rawset("PrimaryColor3", Color.Black)
+		self:rawset("Font", Enum.Font.SourceSansSemibold)
+		self:rawset("TextSize", 16)
+
 		self.TextLabel = self.Object.TextLabel
-
-		local function UpdateTextBounds()
-			if self.TextLabel then
-				self:rawset("TextBounds", self.TextLabel.TextBounds)
-			end
-		end
-
-		self.TextLabel:GetPropertyChangedSignal("TextBounds"):Connect(UpdateTextBounds)
-		UpdateTextBounds()
 
 		self.Rippler = PseudoInstance.new("Rippler")
 		self.Rippler.RippleTransparency = 0.68
