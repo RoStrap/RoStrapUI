@@ -22,19 +22,9 @@ local Radio = Resources:LoadLibrary("Radio")
 local Shadow = Resources:LoadLibrary("Shadow")
 local RadioGroup = Resources:LoadLibrary("RadioGroup")
 local RippleButton = Resources:LoadLibrary("RippleButton")
-
-local Screen = Instance.new("ScreenGui")
-Screen.Name = "RoStrapPriorityUIs"
-Screen.DisplayOrder = 2^31 - 2
-
-local DialogBlur = Instance.new("BlurEffect")
-DialogBlur.Size = 0
-DialogBlur.Name = "DialogBlur"
-DialogBlur.Parent = Lighting
+local RoStrapPriorityUI = Resources:LoadLibrary("RoStrapPriorityUI")
 
 local BUTTON_WIDTH_PADDING = 8
-local DISMISS_TIME = 75 / 1000 * 2
-local ENTER_TIME = 150 / 1000 * 2
 
 local Left = Enum.TextXAlignment.Left.Value
 local SourceSansSemibold = Enum.Font.SourceSansSemibold.Value
@@ -108,15 +98,15 @@ end
 
 local function OnDismiss(self)
 	if not self.Dismissed then
-		self.OnConfirmed:Fire(LocalPlayer, false)
 		self:Dismiss()
+		self.OnConfirmed:Fire(LocalPlayer, false)
 	end
 end
 
 local function OnConfirm(self)
 	if not self.Dismissed then
-		self.OnConfirmed:Fire(LocalPlayer, self.RadioGroup:GetSelection())
 		self:Dismiss()
+		self.OnConfirmed:Fire(LocalPlayer, self.RadioGroup:GetSelection())
 	end
 end
 
@@ -141,24 +131,30 @@ end
 return PseudoInstance:Register("ChoiceDialog", {
 	Storage = {};
 
-	Internals = {"Object", "ConfirmButton", "DismissButton", "RadioGroup", "AssociatedRadioContainers", "Header", "UIScale", "Background", "Dismissed"};
+	Internals = {"ConfirmButton", "DismissButton", "RadioGroup", "AssociatedRadioContainers", "Header", "UIScale", "Background";
+		SHOULD_BLUR = true;
+	};
 
 	Events = {"OnConfirmed"};
 
 	Methods = {
+		Enter = function(self)
+			self.UIScale.Parent = self.Object
+			self.Object.Parent = self.SCREEN
+			AdjustButtonSize(self.DismissButton)
+			AdjustButtonSize(self.ConfirmButton)
+
+			Tween(self.UIScale, "Scale", 1, OutBack, self.ENTER_TIME, true, HideUIScale, self)
+		end;
+
 		Dismiss = function(self)
 			-- Destroys Dialog when done
 			if not self.Dismissed then
 				self.Dismissed = true
-				Tween(self.UIScale, "Scale", 0, InBack, DISMISS_TIME, true, self.Janitor)
-				self.UIScale.Parent = Screen
-				Tween(DialogBlur, "Size", 0, InBack, ENTER_TIME, true)
+				Tween(self.UIScale, "Scale", 0, InBack, self.DISMISS_TIME, true, self.Janitor)
+				self.UIScale.Parent = self.Object
+				self:Unblur()
 			end
-		end;
-		
-		Destroy = function(self)
-			self:Dismiss()
-			self:super("Destroy")
 		end;
 	};
 
@@ -184,11 +180,11 @@ return PseudoInstance:Register("ChoiceDialog", {
 				ItemContainer:Destroy() -- ItemDescriptions are destroyed here
 				self.AssociatedRadioContainers[Item] = nil
 			end
-			
+
 			if self.RadioGroup then
 				self.Janitor[self.RadioGroup] = self.RadioGroup:Destroy()
 			end
-			
+
 			self.RadioGroup = PseudoInstance.new("RadioGroup")
 			self.Janitor:Add(self.RadioGroup.SelectionChanged:Connect(ConfirmEnable, self.ConfirmButton), "Disconnect")
 			self.Janitor:Add(self.RadioGroup, "Destroy")
@@ -249,23 +245,6 @@ return PseudoInstance:Register("ChoiceDialog", {
 			ConfirmButton.Text = Text
 			self:rawset("ConfirmText", ConfirmButton.Text)
 		end);
-
-		Parent = function(self, Parent)
-			if Parent and PlayerGui then
-				Screen.Parent = PlayerGui
-
-				self.UIScale.Parent = Screen
-				self.Object.Parent = Screen
-				
-				AdjustButtonSize(self.DismissButton)
-				AdjustButtonSize(self.ConfirmButton)
-
-				Tween(self.UIScale, "Scale", 1, OutBack, ENTER_TIME, true, HideUIScale, self)
-				Tween(DialogBlur, "Size", 56, OutBack, ENTER_TIME, true)
-			end
-
-			self:rawset("Parent", Parent)
-		end;
 	};
 
 	Init = function(self, ...)
@@ -284,11 +263,11 @@ return PseudoInstance:Register("ChoiceDialog", {
 		ConfirmButton.TextTransparency = 0.13
 		ConfirmButton.Style = Flat
 		ConfirmButton.Parent = self.Background
-		
+
 		local DismissButton = ConfirmButton:Clone()
 		DismissButton.Position = UDim2.new(0, -8, 1, 0)
 		DismissButton.Parent = ConfirmButton.Object
-		
+
 		self.Janitor:Add(DismissButton:GetPropertyChangedSignal("TextBounds"):Connect(AdjustButtonSize, DismissButton), "Disconnect")
 		self.Janitor:Add(ConfirmButton:GetPropertyChangedSignal("TextBounds"):Connect(AdjustButtonSize, ConfirmButton), "Disconnect")
 
@@ -306,4 +285,4 @@ return PseudoInstance:Register("ChoiceDialog", {
 		self.PrimaryColor3 = Color3.fromRGB(98, 0, 238)
 		self:superinit(...)
 	end;
-}, ReplicatedPseudoInstance)
+}, RoStrapPriorityUI)
