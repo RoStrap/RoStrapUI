@@ -1,3 +1,4 @@
+```lua
 -- Simple Snackbar Generator
 -- @readme https://github.com/RoStrap/UI/blob/master/README.md
 -- @author Validark
@@ -108,3 +109,4 @@ function Snackbar.new(Text, Screen)
 end
 
 return Snackbar
+```
