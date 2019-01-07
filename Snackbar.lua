@@ -1,4 +1,5 @@
 -- Snackbar PseudoInstance
+-- @documentation https://rostrap.github.io/Libraries/RoStrapUI/Snackbar/
 -- @author Validark
 
 local Players = game:GetService("Players")
@@ -144,7 +145,7 @@ return PseudoInstance:Register("Snackbar", {
 				CurrentlyInputting[InputObject.UserInputType.Value] = false
 			end)
 
-			Tween(SnackbarFrame, "Position", self.EnterPosition, Deceleration, self.ENTER_TIME, true, function(Completed)
+			Tween(SnackbarFrame, "Position", self.EnterPosition, Deceleration, self.ENTER_TIME, false, function(Completed)
 				if Completed == TweenCompleted and wait(DISPLAY_TIME) then
 					while IsInputting(CurrentlyInputting) do
 						repeat wait() until not IsInputting(CurrentlyInputting)
@@ -162,7 +163,7 @@ return PseudoInstance:Register("Snackbar", {
 				local SnackbarFrame = self.Object
 				SnackbarFrame.ZIndex = SnackbarFrame.ZIndex - 1
 
-				Tween(SnackbarFrame, "Position", self.ExitPosition, Acceleration, self.ENTER_TIME, false, function(Completed)
+				Tween(SnackbarFrame, "Position", self.ExitPosition, Acceleration, self.ENTER_TIME, true, function(Completed)
 					if Completed == TweenCompleted then
 						SnackbarFrame.Parent = nil
 						if Storage.OpenSnackbar == self then
