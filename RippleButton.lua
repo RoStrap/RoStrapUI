@@ -112,7 +112,8 @@ return PseudoInstance:Register("RippleButton", {
 	Internals = {
 		"TextLabel", "Rippler", "OutlineImage", "OverlayOpacity", "Shadow", "TooltipObject", "InputBegan", "InputEnded", "InputChanged", "RegisteredRippleInputs";
 
-		RenderPrimaryColor3 = function(self, PrimaryColor3)
+		Render = function(self)
+			local PrimaryColor3 = self.PrimaryColor3
 			local Luminosity = PrimaryColor3.r * 0.299 + PrimaryColor3.g * 0.587 + PrimaryColor3.b * 0.114
 
 			if self.Style == Enumeration.ButtonStyle.Contained then
@@ -232,7 +233,7 @@ return PseudoInstance:Register("RippleButton", {
 				end
 
 				self:rawset("Disabled", Disabled)
-				self:RenderPrimaryColor3(self.PrimaryColor3)
+				self:Render()
 			end
 		end);
 
@@ -298,7 +299,7 @@ return PseudoInstance:Register("RippleButton", {
 				self.Shadow.Transparency = 0
 			end
 
-			self:RenderPrimaryColor3(self.PrimaryColor3) -- re-render PrimaryColor3
+			self:Render()
 
 			if IsOutlined then
 				self.OutlineImage = OutlineImage:Clone()
@@ -316,13 +317,13 @@ return PseudoInstance:Register("RippleButton", {
 		end);
 
 		PrimaryColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, PrimaryColor3)
-			self:RenderPrimaryColor3(PrimaryColor3)
 			self:rawset("PrimaryColor3", PrimaryColor3)
+			self:Render()
 		end);
 
 		SecondaryColor3 = Typer.AssignSignature(2, Typer.OptionalColor3, function(self, SecondaryColor3)
 			self:rawset("SecondaryColor3", SecondaryColor3)
-			self:RenderPrimaryColor3(self.PrimaryColor3)
+			self:Render()
 		end);
 
 		Visible = Typer.AssignSignature(2, Typer.Boolean, function(self, Visible)
