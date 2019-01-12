@@ -320,7 +320,7 @@ return PseudoInstance:Register("RippleButton", {
 			self:rawset("PrimaryColor3", PrimaryColor3)
 		end);
 
-		SecondaryColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, SecondaryColor3)
+		SecondaryColor3 = Typer.AssignSignature(2, Typer.OptionalColor3, function(self, SecondaryColor3)
 			self:rawset("SecondaryColor3", SecondaryColor3)
 			self:RenderPrimaryColor3(self.PrimaryColor3)
 		end);
