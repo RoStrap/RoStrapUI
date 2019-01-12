@@ -101,6 +101,7 @@ return PseudoInstance:Register("Radio", {
 
 	Methods = {
 		SetChecked = Typer.AssignSignature(2, Typer.OptionalBoolean, function(self, Checked)
+			if self.Disabled then return true end
 			if Checked == nil then Checked = true end
 			local Changed = self.Checked == Checked == false
 
