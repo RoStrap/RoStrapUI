@@ -120,10 +120,10 @@ return PseudoInstance:Register("RippleButton", {
 					PrimaryColor3 = Color3.fromRGB(204, 204, 204)
 				end
 
-				local TextColor3 = 0.5 < Luminosity and Color.Black or Color.White
+				local SecondaryColor3 = self.SecondaryColor3 or 0.5 < Luminosity and Color.Black or Color.White
 
-				self.Rippler.RippleColor3 = TextColor3
-				self.TextLabel.TextColor3 = TextColor3
+				self.Rippler.RippleColor3 = SecondaryColor3
+				self.TextLabel.TextColor3 = SecondaryColor3
 				self.Object.ImageColor3 = PrimaryColor3
 			else
 				if self.Disabled then
@@ -320,6 +320,11 @@ return PseudoInstance:Register("RippleButton", {
 			self:rawset("PrimaryColor3", PrimaryColor3)
 		end);
 
+		SecondaryColor3 = Typer.AssignSignature(2, Typer.OptionalColor3, function(self, SecondaryColor3)
+			self:rawset("SecondaryColor3", SecondaryColor3)
+			self:RenderPrimaryColor3(self.PrimaryColor3)
+		end);
+
 		Visible = Typer.AssignSignature(2, Typer.Boolean, function(self, Visible)
 			self.Object.Visible = Visible
 
@@ -354,6 +359,7 @@ return PseudoInstance:Register("RippleButton", {
 	Init = function(self)
 		self:rawset("Object", ImageButton:Clone())
 		self:rawset("PrimaryColor3", Color.Black)
+		self:rawset("SecondaryColor3", nil)
 		self:rawset("Font", Enum.Font.SourceSansSemibold)
 		self:rawset("TextSize", 16)
 
