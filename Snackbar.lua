@@ -24,20 +24,13 @@ local BUTTON_FONT = Enum.Font.SourceSansSemibold.Value
 local BUTTON_SIZE = 18
 local CORNER_OFFSET = 8
 
-local HEIGHT = 48;
-local SMALLEST_WIDTH = 294;
-local DISPLAY_TIME = 2;
+local HEIGHT = 48
+local SMALLEST_WIDTH = 294
+local DISPLAY_TIME = 2
 
--- Micro-optimizations
-local Instance_new = Instance.new
-local Vector2_new = Vector2.new
-local UDim2_new = UDim2.new
-local Color3_fromRGB = Color3.fromRGB
-local Rect_new = Rect.new
-local string_upper = string.upper
 local TweenCompleted = Enum.TweenStatus.Completed
-local Deceleration = Enumeration.EasingFunction.Deceleration
-local Acceleration = Enumeration.EasingFunction.Acceleration
+local Deceleration = Enumeration.EasingFunction.Deceleration.Value
+local Acceleration = Enumeration.EasingFunction.Acceleration.Value
 
 Enumeration.SnackbarPosition = { "Left", "Right", "Center" }
 
