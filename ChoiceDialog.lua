@@ -35,8 +35,12 @@ local OutBack = Enumeration.EasingFunction.OutBack.Value
 
 local LocalPlayer, PlayerGui do
 	if RunService:IsClient() then
-		repeat LocalPlayer = Players.LocalPlayer until LocalPlayer or not wait()
-		repeat PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") until PlayerGui or not wait()
+		if RunService:IsServer() then
+			PlayerGui = game:GetService("CoreGui")
+		else
+			repeat LocalPlayer = Players.LocalPlayer until LocalPlayer or not wait()
+			repeat PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") until PlayerGui or not wait()
+		end
 	end
 end
 
