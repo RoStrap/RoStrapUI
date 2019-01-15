@@ -20,8 +20,12 @@ local OutBack = Enumeration.EasingFunction.OutBack.Value
 
 local LocalPlayer, PlayerGui do
 	if RunService:IsClient() then
-		repeat LocalPlayer = Players.LocalPlayer until LocalPlayer or not wait()
-		repeat PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") until PlayerGui or not wait()
+		if RunService:IsServer() then
+			PlayerGui = game:GetService("CoreGui")
+		else
+			repeat LocalPlayer = Players.LocalPlayer until LocalPlayer or not wait()
+			repeat PlayerGui = LocalPlayer:FindFirstChildOfClass("PlayerGui") until PlayerGui or not wait()
+		end
 	end
 end
 
@@ -32,7 +36,10 @@ Screen.DisplayOrder = 2^31 - 2
 local DialogBlur = Instance.new("BlurEffect")
 DialogBlur.Size = 0
 DialogBlur.Name = "RoStrapBlur"
-DialogBlur.Parent = Lighting
+
+local function SetDialogBlurParentToNil()
+	DialogBlur.Parent = nil
+end
 
 -- NOTE: Enter()s automatically when Parented
 return PseudoInstance:Register("RoStrapPriorityUI", {
@@ -42,11 +49,12 @@ return PseudoInstance:Register("RoStrapPriorityUI", {
 		"Object";
 
 		Blur = function(self)
+			DialogBlur.Parent = Lighting
 			Tween(DialogBlur, "Size", 56, OutBack, self.ENTER_TIME, true)
 		end;
 
 		Unblur = function(self)
-			Tween(DialogBlur, "Size", 0, InBack, self.ENTER_TIME, true)
+			Tween(DialogBlur, "Size", 0, InBack, self.ENTER_TIME, true, SetDialogBlurParentToNil)
 		end;
 
 		DISMISS_TIME = 75 / 1000 * 2;
