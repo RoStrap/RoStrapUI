@@ -26,7 +26,7 @@ local CORNER_OFFSET = 8
 
 local HEIGHT = 48
 local SMALLEST_WIDTH = 294
-local DISPLAY_TIME = 2
+local DISPLAY_TIME = 5
 
 local TweenCompleted = Enum.TweenStatus.Completed
 local Deceleration = Enumeration.EasingFunction.Deceleration.Value
