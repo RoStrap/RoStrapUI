@@ -12,6 +12,7 @@ local Bezier = Resources:LoadLibrary("Bezier")
 local Standard = Bezier.new(0.4, 0.0, 0.2, 1)
 
 local Heartbeat = RunService.Heartbeat
+local ceil = math.ceil
 
 local function AsymmetricTransformation(Button, EndSize)
 	local StartX = Button.Size.X
@@ -67,7 +68,7 @@ local function AsymmetricTransformation(Button, EndSize)
 					YOffset = YStartOffset
 				end
 
-				Button.Size = UDim2.new(math.ceil(XScale), math.ceil(XOffset), math.ceil(YScale), math.ceil(YOffset))
+				Button.Size = UDim2.new(ceil(XScale), ceil(XOffset), ceil(YScale), ceil(YOffset))
 			else
 				Connection:Disconnect()
 				Button.Size = EndSize
@@ -103,7 +104,7 @@ local function AsymmetricTransformation(Button, EndSize)
 					XOffset = XStartOffset
 				end
 	
-				Button.Size = UDim2.new(math.ceil(XScale), math.ceil(XOffset), math.ceil(YScale), math.ceil(YOffset))
+				Button.Size = UDim2.new(ceil(XScale), ceil(XOffset), ceil(YScale), ceil(YOffset))
 			else
 				Connection:Disconnect()
 				Button.Size = EndSize
