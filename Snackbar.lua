@@ -26,7 +26,6 @@ local CORNER_OFFSET = 8
 
 local HEIGHT = 48
 local SMALLEST_WIDTH = 294
-local DISPLAY_TIME = 5
 
 local TweenCompleted = Enum.TweenStatus.Completed
 local Deceleration = Enumeration.EasingFunction.Deceleration.Value
@@ -115,7 +114,24 @@ return PseudoInstance:Register("Snackbar", {
 		Object = { "Active", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp" },
 	};
 
-	Methods = {
+	Events = {
+		"OnAction";
+	};
+
+	Internals = {
+		"SnackbarText", "SnackbarAction", "RegisteredRippleInputs", "EnterPosition", "ExitPosition";
+
+		SHOULD_BLUR = false;
+
+		ActionButtonWidth = 0;
+		TextWidth = 0;
+		ENTER_TIME = 0.275;
+
+		AdjustSnackbarSize = function(self)
+			local Width = self.ActionButtonWidth + self.TextWidth + 16*3
+			self.Object.Size = UDim2.new(0, Width > SMALLEST_WIDTH and Width or SMALLEST_WIDTH, 0, HEIGHT)
+		end;
+
 		Enter = function(self)
 			self.Dismissed = false
 			local SnackbarFrame = self.Object
@@ -139,10 +155,10 @@ return PseudoInstance:Register("Snackbar", {
 			end)
 
 			Tween(SnackbarFrame, "Position", self.EnterPosition, Deceleration, self.ENTER_TIME, false, function(Completed)
-				if Completed == TweenCompleted and wait(DISPLAY_TIME) then
+				if Completed == TweenCompleted and wait(self.DisplayTime) then
 					while IsInputting(CurrentlyInputting) do
 						repeat wait() until not IsInputting(CurrentlyInputting)
-						wait(DISPLAY_TIME)
+						wait(self.DisplayTime)
 					end
 
 					self:Dismiss()
@@ -165,25 +181,6 @@ return PseudoInstance:Register("Snackbar", {
 					end
 				end)
 			end
-		end;
-	};
-
-	Events = {
-		"OnAction";
-	};
-
-	Internals = {
-		"SnackbarText", "SnackbarAction", "RegisteredRippleInputs", "EnterPosition", "ExitPosition";
-
-		SHOULD_BLUR = false;
-
-		ActionButtonWidth = 0;
-		TextWidth = 0;
-		ENTER_TIME = 0.275;
-
-		AdjustSnackbarSize = function(self)
-			local Width = self.ActionButtonWidth + self.TextWidth + 16*3
-			self.Object.Size = UDim2.new(0, Width > SMALLEST_WIDTH and Width or SMALLEST_WIDTH, 0, HEIGHT)
 		end;
 	};
 
@@ -223,11 +220,16 @@ return PseudoInstance:Register("Snackbar", {
 			self:AdjustSnackbarSize()
 			self:rawset("Text", Text)
 		end);
+
+		DisplayTime = Typer.AssignSignature(2, Typer.Number, function(self, DisplayTime)
+			self:rawset("DisplayTime", DisplayTime)
+		end)
 	},
 
 	Init = function(self, ...)
 		self.Object = SnackbarImage:Clone()
 		self.SnackbarText = self.Object.SnackbarText
+		self:rawset("DisplayTime", 5)
 
 		local SnackbarAction = PseudoInstance.new("RippleButton")
 		SnackbarAction.AnchorPoint = Vector2.new(1, 0.5)
