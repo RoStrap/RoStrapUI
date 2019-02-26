@@ -113,25 +113,8 @@ return PseudoInstance:Register("Snackbar", {
 	WrappedProperties = {
 		Object = { "Active", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp" },
 	};
-
-	Events = {
-		"OnAction";
-	};
-
-	Internals = {
-		"SnackbarText", "SnackbarAction", "RegisteredRippleInputs", "EnterPosition", "ExitPosition";
-
-		SHOULD_BLUR = false;
-
-		ActionButtonWidth = 0;
-		TextWidth = 0;
-		ENTER_TIME = 0.275;
-
-		AdjustSnackbarSize = function(self)
-			local Width = self.ActionButtonWidth + self.TextWidth + 16*3
-			self.Object.Size = UDim2.new(0, Width > SMALLEST_WIDTH and Width or SMALLEST_WIDTH, 0, HEIGHT)
-		end;
-
+	
+	Methods = {
 		Enter = function(self)
 			self.Dismissed = false
 			local SnackbarFrame = self.Object
@@ -181,6 +164,25 @@ return PseudoInstance:Register("Snackbar", {
 					end
 				end)
 			end
+		end;
+	};
+
+	Events = {
+		"OnAction";
+	};
+
+	Internals = {
+		"SnackbarText", "SnackbarAction", "RegisteredRippleInputs", "EnterPosition", "ExitPosition";
+
+		SHOULD_BLUR = false;
+
+		ActionButtonWidth = 0;
+		TextWidth = 0;
+		ENTER_TIME = 0.275;
+
+		AdjustSnackbarSize = function(self)
+			local Width = self.ActionButtonWidth + self.TextWidth + 16*3
+			self.Object.Size = UDim2.new(0, Width > SMALLEST_WIDTH and Width or SMALLEST_WIDTH, 0, HEIGHT)
 		end;
 	};
 
