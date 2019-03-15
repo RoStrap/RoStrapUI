@@ -1,4 +1,6 @@
 -- Snackbar PseudoInstance
+-- @source https://raw.githubusercontent.com/RoStrap/RoStrapUI/master/Snackbar.lua
+-- @rostrap Snackbar
 -- @documentation https://rostrap.github.io/Libraries/RoStrapUI/Snackbar/
 -- @author Validark
 
@@ -37,15 +39,15 @@ Enumeration.SnackbarPosition = { "Left", "Right", "Center" }
 
 local StatePosition = {
 	[Enumeration.SnackbarPosition.Left.Value] = {
-		AnchorPoint = Vector2.new(0, 0);
-		ExitPosition = UDim2.new(0.5, 0, 1, 0);
-		EnterPosition = UDim2.new(0.5, 0, 1, -HEIGHT - CORNER_OFFSET);
+		AnchorPoint = Vector2.new(1, 0);
+		ExitPosition = UDim2.new(1, -7, 1, 0);
+		EnterPosition = UDim2.new(1, -7, 1, -HEIGHT - CORNER_OFFSET);
 	};
 
 	[Enumeration.SnackbarPosition.Right.Value] = {
-		AnchorPoint = Vector2.new(1, 0);
-		ExitPosition = UDim2.new(0.5, 0, 1, 0);
-		EnterPosition = UDim2.new(0.5, 0, 1, -HEIGHT - CORNER_OFFSET);
+		AnchorPoint = Vector2.new(0, 0);
+		ExitPosition = UDim2.new(0, 7, 1, 0);
+		EnterPosition = UDim2.new(0, 7, 1, -HEIGHT - CORNER_OFFSET);
 	};
 
 	[Enumeration.SnackbarPosition.Center.Value] = {
@@ -213,6 +215,13 @@ return PseudoInstance:Register("Snackbar", {
 			end
 
 			self:AdjustSnackbarSize()
+		end);
+		
+		ActionColor = Typer.AssignSignature(2, Typer.Color3, function(self, Color)
+			if self.SnackbarAction.Parent ~= nil then
+				self.SnackbarAction.PrimaryColor3 = Color
+				self:rawset("ActionColor", Color)
+			end
 		end);
 
 		Text = Typer.AssignSignature(2, Typer.String, function(self, Text)
