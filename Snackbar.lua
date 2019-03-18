@@ -218,7 +218,7 @@ return PseudoInstance:Register("Snackbar", {
 		ActionColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, Color)
 			if self.SnackbarAction.Parent ~= nil then
 				self.SnackbarAction.PrimaryColor3 = Color
-				self:rawset("ActionColor", Color)
+				self:rawset("ActionColor3", Color)
 			end
 		end);
 
