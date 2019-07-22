@@ -133,6 +133,7 @@ return PseudoInstance:Register("Radio", {
 
 	Init = function(self)
 		self.Button = RadioButton:Clone()
+		self:rawset("Object", self.Button)
 		self.InnerCircle = self.Button.InnerCircle
 		self.Janitor:Add(self.Button, "Destroy")
 		self.Janitor:Add(self.InnerCircle, "Destroy")

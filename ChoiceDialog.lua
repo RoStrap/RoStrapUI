@@ -252,7 +252,7 @@ return PseudoInstance:Register("ChoiceDialog", {
 	};
 
 	Init = function(self, ...)
-		self.Object = Frame:Clone()
+		self:rawset("Object", Frame:Clone())
 		self.UIScale = self.Object.UIScale
 		self.Background = self.Object.Background
 		self.Header = self.Background.Header

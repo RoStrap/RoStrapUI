@@ -604,6 +604,7 @@ return PseudoInstance:Register("Checkbox", {
 
 	Init = function(self)
 		self.Button = self.Template:Clone()
+		self:rawset("Object", self.Button)
 		local GridFrame = self.Button.GridFrame
 		local Grid = {}
 
