@@ -115,7 +115,7 @@ return PseudoInstance:Register("Snackbar", {
 	WrappedProperties = {
 		Object = { "Active", "LayoutOrder", "NextSelectionDown", "NextSelectionLeft", "NextSelectionRight", "NextSelectionUp" },
 	};
-	
+
 	Methods = {
 		Enter = function(self)
 			self.Dismissed = false
@@ -214,7 +214,7 @@ return PseudoInstance:Register("Snackbar", {
 
 			self:AdjustSnackbarSize()
 		end);
-		
+
 		ActionColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, Color)
 			if self.SnackbarAction.Parent ~= nil then
 				self.SnackbarAction.PrimaryColor3 = Color
@@ -238,7 +238,7 @@ return PseudoInstance:Register("Snackbar", {
 	},
 
 	Init = function(self, ...)
-		self.Object = SnackbarImage:Clone()
+		self:rawset("Object", SnackbarImage:Clone())
 		self.SnackbarText = self.Object.SnackbarText
 		self:rawset("DisplayTime", 5)
 
