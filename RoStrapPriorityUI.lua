@@ -46,8 +46,6 @@ return PseudoInstance:Register("RoStrapPriorityUI", {
 	Storage = {};
 
 	Internals = {
-		"Object";
-
 		Blur = function(self)
 			DialogBlur.Parent = Lighting
 			Tween(DialogBlur, "Size", 56, OutBack, self.ENTER_TIME, true)
