@@ -127,18 +127,18 @@ local function HideUIScale(self)
 end
 
 local function RescaleUI(self, Text)
-	local PrimaryText = self.PrimaryText
+	local PrimaryText = self.Object.Background.PrimaryText
 
 	if Text then
 		local TextSize = TextService:GetTextSize(Text, 20, SourceSans, FRAME_SIZE).Y
 		local SizeY = TextSize + 4 < 64 and 64 or TextSize + 4
-		self.Background.Size = UDim2.new(0, WIDTH, 0, TextSize + 40 + 52 + 24)
+		self.Object.Background.Size = UDim2.new(0, WIDTH, 0, TextSize + 40 + 52 + 24)
 		PrimaryText.Size = UDim2.new(1, -24, 0, SizeY)
 		PrimaryText.Position = UDim2.new(0, 24, 0, SizeY == 64 and 40 or 40 + (SizeY - 64))
 	else
 		local TextSize = TextService:GetTextSize(PrimaryText.Text, 20, SourceSans, FRAME_SIZE).Y
 		local SizeY = TextSize + 4 < 64 and 64 or TextSize + 4
-		self.Background.Size = UDim2.new(0, WIDTH, 0, TextSize + 40 + 52 + 24)
+		self.Object.Background.Size = UDim2.new(0, WIDTH, 0, TextSize + 40 + 52 + 24)
 		PrimaryText.Size = UDim2.new(1, -24, 0, SizeY)
 		PrimaryText.Position = UDim2.new(0, 24, 0, SizeY == 64 and 40 or 40 + (SizeY - 64))
 	end
@@ -148,7 +148,7 @@ return PseudoInstance:Register("ConfirmationDialog", {
 	Storage = {};
 
 	Internals = {
-		"ConfirmButton", "DismissButton", "Header", "PrimaryText", "Background", "UIScale";
+		"ConfirmButton", "DismissButton", "UIScale";
 		SHOULD_BLUR = true;
 	};
 
@@ -184,36 +184,31 @@ return PseudoInstance:Register("ConfirmationDialog", {
 		end);
 
 		HeaderText = Typer.AssignSignature(2, Typer.String, function(self, Text)
-			self.Header.Text = Text
-			self:rawset("HeaderText", self.Header.Text)
+			self.Object.Background.Header.Text = Text
+			self:rawset("HeaderText", Text)
 		end);
 
 		DialogText = Typer.AssignSignature(2, Typer.String, function(self, Text)
 			RescaleUI(self, Text)
-			self.PrimaryText.Text = Text
-			self:rawset("DialogText", self.PrimaryText.Text)
+			self.Object.Background.PrimaryText.Text = Text
+			self:rawset("DialogText", Text)
 		end);
 
 		DismissText = Typer.AssignSignature(2, Typer.String, function(self, Text)
-			local DismissButton = self.DismissButton
-			DismissButton.Text = Text
-			self:rawset("DismissText", DismissButton.Text)
+			self.DismissButton.Text = Text
+			self:rawset("DismissText", Text)
 		end);
 
 		ConfirmText = Typer.AssignSignature(2, Typer.String, function(self, Text)
-			local ConfirmButton = self.ConfirmButton
-			ConfirmButton.Text = Text
-			self:rawset("ConfirmText", ConfirmButton.Text)
+			self.ConfirmButton.Text = Text
+			self:rawset("ConfirmText", Text)
 		end);
 	};
 
 	Init = function(self, ...)
-		self.Object = Frame:Clone()
-		self.Background = self.Object.Background
+		self:rawset("Object", Frame:Clone())
 		self.UIScale = self.Object.UIScale
-		self.Header = self.Background.Header
-		self.PrimaryText = self.Background.PrimaryText
-
+		
 		local ConfirmButton = PseudoInstance.new("RippleButton")
 		ConfirmButton.AnchorPoint = Vector2.new(1, 1)
 		ConfirmButton.Position = UDim2.new(1, -8, 1, -8)
@@ -222,7 +217,7 @@ return PseudoInstance:Register("ConfirmationDialog", {
 		ConfirmButton.TextSize = 16
 		ConfirmButton.TextTransparency = 0.129
 		ConfirmButton.Style = Flat
-		ConfirmButton.Parent = self.Background
+		ConfirmButton.Parent = self.Object.Background
 
 		local DismissButton = ConfirmButton:Clone()
 		DismissButton.Position = UDim2.new(0, -8, 1, 0)
@@ -235,7 +230,6 @@ return PseudoInstance:Register("ConfirmationDialog", {
 		self.DismissButton = DismissButton
 		self.Janitor:Add(ConfirmButton.OnPressed:Connect(OnConfirm, self), "Disconnect")
 		self.Janitor:Add(DismissButton.OnPressed:Connect(OnDismiss, self), "Disconnect")
-
 		self.Janitor:Add(self.Object, "Destroy")
 		self.Janitor:Add(SubDialogsActive, true)
 
