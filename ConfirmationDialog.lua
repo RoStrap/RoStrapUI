@@ -228,8 +228,10 @@ return PseudoInstance:Register("ConfirmationDialog", {
 
 		self.ConfirmButton = ConfirmButton
 		self.DismissButton = DismissButton
+
 		self.Janitor:Add(ConfirmButton.OnPressed:Connect(OnConfirm, self), "Disconnect")
 		self.Janitor:Add(DismissButton.OnPressed:Connect(OnDismiss, self), "Disconnect")
+		self.Janitor:Add(self.UIScale, "Destroy")
 		self.Janitor:Add(self.Object, "Destroy")
 		self.Janitor:Add(SubDialogsActive, true)
 
