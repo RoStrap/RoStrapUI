@@ -582,6 +582,8 @@ return PseudoInstance:Register("Checkbox", {
 						Button.ImageTransparency = 1
 						self.OpenTween = self.Indeterminate and Tween.new(DRAW_DURATION, CHECKMARK_DRAW_BEZIER, self.DrawCheckmark, self) or Tween.new(FILL_DURATION, CENTER_FILL_BEZIER, self.FillCenter, self)
 						self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, self.ShrinkFrame, self)
+						self:FillCenter()
+						self:DrawCheckmark()
 					else
 						local Theme = CHECKBOX_THEMES[self.Theme.Value]
 
@@ -590,6 +592,8 @@ return PseudoInstance:Register("Checkbox", {
 						self.XOffset, self.YOffset = 0, 0
 						self.OpenTween = Tween.new(DRAW_DURATION, CHECKMARK_ERASE_BEZIER, self.EraseCheckmark, self)
 						self.OpenTween2 = Tween.new(SHRINK_DURATION, OUTSIDE_TRANSPARENCY_BEZIER, self.ShrinkFrame, self)
+						self:EraseCheckmark()
+						self:EmptyCenter()
 					end
 
 					self:rawset("Checked", NewChecked)
