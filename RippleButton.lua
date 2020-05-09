@@ -175,9 +175,8 @@ return PseudoInstance:Register("RippleButton", {
 		Elevation = Typer.AssignSignature(2, Typer.EnumerationOfTypeShadowElevation, function(self, Elevation)
 			if Elevation.Value > 0 and self.Style ~= Enumeration.ButtonStyle.Contained then
 				self.Style = Enumeration.ButtonStyle.Contained
-				self.Shadow.Elevation = Elevation
 			end
-
+			self.Shadow.Elevation = Elevation
 			self:rawset("Elevation", Elevation)
 		end);
 
