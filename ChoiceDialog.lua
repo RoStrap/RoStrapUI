@@ -1,4 +1,6 @@
 -- 2-step Choice Dialog ReplicatedPseudoInstance
+-- @source https://raw.githubusercontent.com/RoStrap/RoStrapUI/master/ChoiceDialog.lua
+-- @rostrap ChoiceDialog
 -- @documentation https://rostrap.github.io/Libraries/RoStrapUI/ChoiceDialog/
 -- @author Validark
 
@@ -68,6 +70,18 @@ local Frame do
 	Background.Name = "Background"
 	Background.ZIndex = 2
 	Background.Parent = Frame
+	
+	local ScrollingFrame = Instance.new("ScrollingFrame")
+	ScrollingFrame.Size = UDim2.fromScale(1, 0.67)
+	ScrollingFrame.Position = UDim2.fromOffset(0, 64)
+	ScrollingFrame.BackgroundTransparency = 1
+	ScrollingFrame.ZIndex = 2
+	ScrollingFrame.BorderSizePixel = 0
+	ScrollingFrame.MidImage = "rbxassetid://3419963"
+	ScrollingFrame.TopImage = "rbxassetid://3419963"
+	ScrollingFrame.BottomImage = "rbxassetid://3419963"
+	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ScrollingFrame.Parent = Background
 
 	local Header = Instance.new("TextLabel")
 	Header.Font = SourceSansSemibold
@@ -143,6 +157,7 @@ return PseudoInstance:Register("ChoiceDialog", {
 
 	Methods = {
 		Enter = function(self)
+			self.Dismissed = false
 			self.UIScale.Parent = self.Object
 			self.Object.Parent = self.SCREEN
 			AdjustButtonSize(self.DismissButton)
@@ -177,7 +192,9 @@ return PseudoInstance:Register("ChoiceDialog", {
 
 		Options = Typer.AssignSignature(2, Typer.ArrayOfStrings, function(self, Options)
 			local NumOptions = #Options
-			self.Background.Size = UDim2.new(0, 280, 0, 117 + 48 * NumOptions)
+			self.Background.Size = UDim2.new(0, 280, 0, math.clamp(117, 357, 117 + 48 * NumOptions))
+			self.ScrollingFrame.Size = UDim2.fromOffset(280, math.clamp(0, 240, 48 * NumOptions))
+			self.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, 48 * NumOptions)
 
 			for Item, ItemContainer in next, self.AssociatedRadioContainers do
 				Item:Destroy()
@@ -197,12 +214,12 @@ return PseudoInstance:Register("ChoiceDialog", {
 				local ChoiceName = Options[i]
 
 				local ItemContainer = PseudoInstance.new("RippleButton")
-				ItemContainer.Position = UDim2.new(0, 0, 0, 64 + 48 * (i - 1))
+				ItemContainer.Position = UDim2.new(0, 0, 0, 48 * (i - 1))
 				ItemContainer.Size = UDim2.new(1, 0, 0, 48)
 				ItemContainer.BorderRadius = 0
 				ItemContainer.ZIndex = 5
 				ItemContainer.Style = Flat
-				ItemContainer.Parent = self.Background
+				ItemContainer.Parent = self.ScrollingFrame
 
 				local Item = PseudoInstance.new("Radio")
 				Item.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -255,6 +272,7 @@ return PseudoInstance:Register("ChoiceDialog", {
 		self:rawset("Object", Frame:Clone())
 		self.UIScale = self.Object.UIScale
 		self.Background = self.Object.Background
+		self:rawset("ScrollingFrame", self.Background.ScrollingFrame)
 		self.Header = self.Background.Header
 		self.AssociatedRadioContainers = {}
 
@@ -266,6 +284,7 @@ return PseudoInstance:Register("ChoiceDialog", {
 		ConfirmButton.TextSize = 16
 		ConfirmButton.TextTransparency = 0.13
 		ConfirmButton.Style = Flat
+		ConfirmButton.Elevation = 2
 		ConfirmButton.Parent = self.Background
 
 		local DismissButton = ConfirmButton:Clone()
