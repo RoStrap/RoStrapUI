@@ -369,6 +369,9 @@ local Color = {
 	White = rgb(255, 255, 255);
 }
 
+Color.Gray = Color.Grey
+Color.BlueGray = Color.BlueGrey
+
 function Color.toRGBString(c, a)
 	local r = c.r * 255 + 0.5
 	local g = c.g * 255 + 0.5

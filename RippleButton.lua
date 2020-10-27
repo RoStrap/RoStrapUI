@@ -19,8 +19,9 @@ local Shadow = Resources:LoadLibrary("Shadow")
 local Rippler = Resources:LoadLibrary("Rippler")
 
 -- Elevations
-local RAISED_BASE_ELEVATION = 3
-local RAISED_ELEVATION = 8
+local RAISED_BASE_ELEVATION = 0
+local RAISED_ELEVATION = 6
+local HOVERED_ELEVATION = 4
 
 Enumeration.ButtonStyle = {"Flat", "Outlined", "Contained"}
 
@@ -38,7 +39,7 @@ local StateOpacity = { -- TODO: Derive these values based on the PrimaryColor3's
 
 	[Enumeration.ButtonStyle.Contained.Value] = {
 		Hover = 0.12; --0.075;
-		Pressed = 0.3; -- 0.265;
+		Pressed = 0.16; -- 0.265;
 	};
 }
 
@@ -122,7 +123,6 @@ return PseudoInstance:Register("RippleButton", {
 				end
 
 				local SecondaryColor3 = self.SecondaryColor3 or 0.5 < Luminosity and Color.Black or Color.White
-
 				self.Rippler.RippleColor3 = SecondaryColor3
 				self.TextLabel.TextColor3 = SecondaryColor3
 				self.Object.ImageColor3 = PrimaryColor3
@@ -293,6 +293,7 @@ return PseudoInstance:Register("RippleButton", {
 				-- self.Object.ImageColor3 = self.PrimaryColor3
 
 				self.Shadow = PseudoInstance.new("Shadow")
+				self.Shadow.ShadowColor3 = self.PrimaryColor3
 				self.Shadow.Parent = self.Object
 				self.Janitor:Add(self.Shadow, "Destroy", "Shadow")
 
@@ -319,6 +320,10 @@ return PseudoInstance:Register("RippleButton", {
 
 		PrimaryColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, PrimaryColor3)
 			self:rawset("PrimaryColor3", PrimaryColor3)
+			if self.Style == Enumeration.ButtonStyle.Contained then
+				self.Shadow.ShadowColor3 = self.PrimaryColor3
+			end
+			
 			self:Render()
 		end);
 
@@ -399,6 +404,7 @@ return PseudoInstance:Register("RippleButton", {
 				IsHovered = true
 
 				if self.Style == Enumeration.ButtonStyle.Contained then
+					self.Shadow:ChangeElevation(HOVERED_ELEVATION)
 					Tween(self.Object, "ImageColor3", self.PrimaryColor3:Lerp(self.Rippler.RippleColor3, self.OverlayOpacity), Enumeration.EasingFunction.Deceleration, 0.1, true)
 				else
 					Tween(self.Object, "ImageTransparency", 1 - self.OverlayOpacity, Enumeration.EasingFunction.Deceleration, 0.1, true)

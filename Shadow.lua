@@ -262,6 +262,16 @@ return PseudoInstance:Register("Shadow", {
 
 			self:rawset("Elevation", Elevation)
 		end);
+		
+		ShadowColor3 = Typer.AssignSignature(2, Typer.Color3, function(self, Color)
+			if self.ShadowColor3 == Color then return end
+			
+			for Name, Data in next, ShadowData[self.Elevation.Value] do
+				self[Name].ImageColor3 = Color
+			end
+			
+			self:rawset("ShadowColor3", Color)
+		end);
 
 		Parent = Typer.AssignSignature(2, Typer.OptionalInstanceWhichIsAGuiObject, function(self, Parent)
 			if Parent then
@@ -331,6 +341,7 @@ return PseudoInstance:Register("Shadow", {
 		end
 
 		self:rawset("Transparency", 0)
+		self:rawset("ShadowColor3", Color3.fromRGB(0,0,0))
 		self:rawset("Elevation", Enumeration.ShadowElevation.Elevation0)
 		self:superinit()
 	end;
